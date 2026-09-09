@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/myblog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/myblog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/myblog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/myblog/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/myblog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css" integrity="sha256-4Lad8m4ZWW1Lgb9+sMVLYEfnIh7BjV1NQMEe79Pviks=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"woshiyigedacainiao.github.io","root":"/myblog/","images":"/myblog/images","scheme":"Muse","darkmode":true,"version":"8.29.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/myblog/js/config.js" defer></script>
+
+    <meta name="description" content="📖 第三步RabbitMQ 消息模块开发经验笔记 📖 RabbitMQ 消息模块开发经验笔记 一、死信队列（DLX）实现延迟消息1.1 什么是死信队列死信队列（Dead Letter Exchange，DLX）是一种消息机制：当消息在队列中满足以下条件时，会被自动转发到另一个交换机（死信交换机）：  消息过期（TTL 超时） 消息被拒绝（basicNack &#x2F; basicReject">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RabbitMQ 消息模块开发">
+<meta property="og:url" content="https://woshiyigedacainiao.github.io/myblog/2026/09/06/RabbitMQ-%E6%B6%88%E6%81%AF%E6%A8%A1%E5%9D%97%E5%BC%80%E5%8F%91/index.html">
+<meta property="og:site_name" content="我的Java学习博客">
+<meta property="og:description" content="📖 第三步RabbitMQ 消息模块开发经验笔记 📖 RabbitMQ 消息模块开发经验笔记 一、死信队列（DLX）实现延迟消息1.1 什么是死信队列死信队列（Dead Letter Exchange，DLX）是一种消息机制：当消息在队列中满足以下条件时，会被自动转发到另一个交换机（死信交换机）：  消息过期（TTL 超时） 消息被拒绝（basicNack &#x2F; basicReject">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-09-06T12:11:51.000Z">
+<meta property="article:modified_time" content="2026-09-06T12:12:16.062Z">
+<meta property="article:author" content="woshiyigedacainiao">
+<meta property="article:tag" content="Java,SpringBoot,MySQL,Redis">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://woshiyigedacainiao.github.io/myblog/2026/09/06/RabbitMQ-%E6%B6%88%E6%81%AF%E6%A8%A1%E5%9D%97%E5%BC%80%E5%8F%91/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://woshiyigedacainiao.github.io/myblog/2026/09/06/RabbitMQ-%E6%B6%88%E6%81%AF%E6%A8%A1%E5%9D%97%E5%BC%80%E5%8F%91/","path":"2026/09/06/RabbitMQ-消息模块开发/","title":"RabbitMQ 消息模块开发"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>RabbitMQ 消息模块开发 | 我的Java学习博客</title>
+  
+
+
+
+
+
+
+
+
+  
+<script src="/myblog/js/utils.js" defer></script><script src="/myblog/js/motion.js" defer></script><script src="/myblog/js/sidebar.js" defer></script><script src="/myblog/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/myblog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-search popup-trigger" aria-label="搜索" role="button">
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/myblog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">我的Java学习博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-toggle" aria-label="切换导航栏" role="button">
+  </div>
+</div>
+
+
+
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%93%96-%E7%AC%AC%E4%B8%89%E6%AD%A5RabbitMQ-%E6%B6%88%E6%81%AF%E6%A8%A1%E5%9D%97%E5%BC%80%E5%8F%91%E7%BB%8F%E9%AA%8C%E7%AC%94%E8%AE%B0"><span class="nav-number">1.</span> <span class="nav-text">📖 第三步RabbitMQ 消息模块开发经验笔记</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%93%96-RabbitMQ-%E6%B6%88%E6%81%AF%E6%A8%A1%E5%9D%97%E5%BC%80%E5%8F%91%E7%BB%8F%E9%AA%8C%E7%AC%94%E8%AE%B0"><span class="nav-number">2.</span> <span class="nav-text">📖 RabbitMQ 消息模块开发经验笔记</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E6%AD%BB%E4%BF%A1%E9%98%9F%E5%88%97%EF%BC%88DLX%EF%BC%89%E5%AE%9E%E7%8E%B0%E5%BB%B6%E8%BF%9F%E6%B6%88%E6%81%AF"><span class="nav-number">2.1.</span> <span class="nav-text">一、死信队列（DLX）实现延迟消息</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-%E4%BB%80%E4%B9%88%E6%98%AF%E6%AD%BB%E4%BF%A1%E9%98%9F%E5%88%97"><span class="nav-number">2.1.1.</span> <span class="nav-text">1.1 什么是死信队列</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-%E7%A7%92%E6%9D%80%E7%B3%BB%E7%BB%9F%E4%B8%AD%E7%9A%84%E5%BB%B6%E8%BF%9F%E6%B6%88%E6%81%AF%E8%AE%BE%E8%AE%A1"><span class="nav-number">2.1.2.</span> <span class="nav-text">1.2 秒杀系统中的延迟消息设计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-%E9%85%8D%E7%BD%AE%E4%BB%A3%E7%A0%81%E6%A8%A1%E6%9D%BF"><span class="nav-number">2.1.3.</span> <span class="nav-text">1.3 配置代码模板</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-%E2%9A%A0%EF%B8%8F-%E8%B8%A9%E5%9D%91%EF%BC%9A%E6%B3%A8%E8%A7%A3%E6%96%B9%E5%BC%8F%E6%97%A0%E6%B3%95%E9%85%8D%E7%BD%AE%E6%AD%BB%E4%BF%A1"><span class="nav-number">2.1.4.</span> <span class="nav-text">1.4 ⚠️ 踩坑：注解方式无法配置死信</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E6%B6%88%E6%81%AF%E7%B1%BB%E5%9E%8B%E5%BF%85%E9%A1%BB%E4%B8%80%E8%87%B4"><span class="nav-number">2.2.</span> <span class="nav-text">二、消息类型必须一致</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-%E8%B8%A9%E5%9D%91%E6%A1%88%E4%BE%8B"><span class="nav-number">2.2.1.</span> <span class="nav-text">2.1 踩坑案例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-%E8%A7%A3%E5%86%B3%E5%8E%9F%E5%88%99"><span class="nav-number">2.2.2.</span> <span class="nav-text">2.2 解决原则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-%E8%AE%BE%E8%AE%A1%E5%BB%BA%E8%AE%AE"><span class="nav-number">2.2.3.</span> <span class="nav-text">2.3 设计建议</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E6%B6%88%E8%B4%B9%E8%80%85%E9%87%8D%E8%AF%95%E6%9C%BA%E5%88%B6"><span class="nav-number">2.3.</span> <span class="nav-text">三、消费者重试机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-%E8%B8%A9%E5%9D%91%EF%BC%9AbasicNack-requeue-true-%E5%AF%BC%E8%87%B4%E6%97%A0%E9%99%90%E5%BE%AA%E7%8E%AF"><span class="nav-number">2.3.1.</span> <span class="nav-text">3.1 踩坑：basicNack(requeue&#x3D;true) 导致无限循环</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-%E6%96%B9%E6%A1%88%E4%B8%80%EF%BC%9A%E6%89%8B%E5%8A%A8%E6%8E%A7%E5%88%B6%E9%87%8D%E8%AF%95%E6%AC%A1%E6%95%B0"><span class="nav-number">2.3.2.</span> <span class="nav-text">3.2 方案一：手动控制重试次数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-%E6%96%B9%E6%A1%88%E4%BA%8C%EF%BC%9ASpring-Retry-%E8%87%AA%E5%8A%A8%E9%87%8D%E8%AF%95%EF%BC%88%E6%9C%AC%E9%A1%B9%E7%9B%AE%E9%87%87%E7%94%A8%EF%BC%89"><span class="nav-number">2.3.3.</span> <span class="nav-text">3.3 方案二：Spring Retry 自动重试（本项目采用）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-%E2%9A%A0%EF%B8%8F-%E8%B8%A9%E5%9D%91%EF%BC%9ASpring-Retry-%E4%B8%8E%E6%89%8B%E5%8A%A8-catch-%E5%86%B2%E7%AA%81"><span class="nav-number">2.3.4.</span> <span class="nav-text">3.4 ⚠️ 踩坑：Spring Retry 与手动 catch 冲突</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-5-%E5%8C%BA%E5%88%86%E4%B8%A4%E7%B1%BB%E9%94%99%E8%AF%AF"><span class="nav-number">2.3.5.</span> <span class="nav-text">3.5 区分两类错误</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E5%B9%82%E7%AD%89%E6%80%A7%E6%A3%80%E6%9F%A5%E7%9A%84%E4%BD%8D%E7%BD%AE"><span class="nav-number">2.4.</span> <span class="nav-text">四、幂等性检查的位置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-%E8%B8%A9%E5%9D%91%EF%BC%9A%E5%B9%82%E7%AD%89%E6%A3%80%E6%9F%A5%E6%94%BE%E5%9C%A8%E6%89%A3%E5%BA%93%E5%AD%98%E4%B9%8B%E5%90%8E"><span class="nav-number">2.4.1.</span> <span class="nav-text">4.1 踩坑：幂等检查放在扣库存之后</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-%E6%AD%A3%E7%A1%AE%E9%A1%BA%E5%BA%8F"><span class="nav-number">2.4.2.</span> <span class="nav-text">4.2 正确顺序</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E6%9E%9A%E4%B8%BE%E7%9A%84%E6%AD%A3%E7%A1%AE%E4%BD%BF%E7%94%A8"><span class="nav-number">2.5.</span> <span class="nav-text">五、枚举的正确使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-%E8%B8%A9%E5%9D%91%EF%BC%9A%E7%94%A8%E6%9E%9A%E4%B8%BE%E5%AF%B9%E8%B1%A1%E8%AE%BE%E7%BD%AE%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%97%E6%AE%B5"><span class="nav-number">2.5.1.</span> <span class="nav-text">5.1 踩坑：用枚举对象设置数据库字段</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-%E6%9E%9A%E4%B8%BE%E8%AE%BE%E8%AE%A1%E6%A8%A1%E6%9D%BF"><span class="nav-number">2.5.2.</span> <span class="nav-text">5.2 枚举设计模板</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AD%E3%80%81%E5%BA%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7%EF%BC%88Redis-MySQL-%E5%8F%8C%E5%86%99%EF%BC%89"><span class="nav-number">2.6.</span> <span class="nav-text">六、库存一致性（Redis + MySQL 双写）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-1-%E5%AE%8C%E6%95%B4%E7%9A%84%E6%95%B0%E6%8D%AE%E6%B5%81"><span class="nav-number">2.6.1.</span> <span class="nav-text">6.1 完整的数据流</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-2-%E2%9A%A0%EF%B8%8F-%E8%B8%A9%E5%9D%91%EF%BC%9A%E5%8F%AA%E5%9B%9E%E6%BB%9A%E4%BA%86%E4%B8%80%E8%BE%B9"><span class="nav-number">2.6.2.</span> <span class="nav-text">6.2 ⚠️ 踩坑：只回滚了一边</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%83%E3%80%81convertAndSend-%E5%8F%82%E6%95%B0%E6%98%93%E5%BF%98"><span class="nav-number">2.7.</span> <span class="nav-text">七、convertAndSend 参数易忘</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#7-1-%E8%B8%A9%E5%9D%91%EF%BC%9A%E6%BC%8F%E6%8E%89%E6%B6%88%E6%81%AF%E4%BD%93"><span class="nav-number">2.7.1.</span> <span class="nav-text">7.1 踩坑：漏掉消息体</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-2-%E5%B8%B8%E7%94%A8%E9%87%8D%E8%BD%BD%E6%96%B9%E6%B3%95"><span class="nav-number">2.7.2.</span> <span class="nav-text">7.2 常用重载方法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AB%E3%80%81MQ-%E6%B6%88%E6%81%AF%E5%8F%91%E9%80%81%E5%A4%B1%E8%B4%A5%E7%9A%84%E8%A1%A5%E5%81%BF"><span class="nav-number">2.8.</span> <span class="nav-text">八、MQ 消息发送失败的补偿</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#8-1-%E5%9C%BA%E6%99%AF"><span class="nav-number">2.8.1.</span> <span class="nav-text">8.1 场景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-2-%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%EF%BC%9Acatch-%E4%B8%AD%E5%9B%9E%E6%BB%9A"><span class="nav-number">2.8.2.</span> <span class="nav-text">8.2 解决方案：catch 中回滚</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B9%9D%E3%80%81%E6%97%A5%E5%BF%97%E7%BA%A7%E5%88%AB%E8%B8%A9%E5%9D%91"><span class="nav-number">2.9.</span> <span class="nav-text">九、日志级别踩坑</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%81%E3%80%81%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83%E5%B0%8F%E8%AE%B0"><span class="nav-number">2.10.</span> <span class="nav-text">十、代码规范小记</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">woshiyigedacainiao</p>
+  <div class="site-description" itemprop="description">Java后端学习笔记、项目踩坑总结</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/myblog/archives/">
+          <span class="site-state-item-count">22</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://woshiyigedacainiao.github.io/myblog/2026/09/06/RabbitMQ-%E6%B6%88%E6%81%AF%E6%A8%A1%E5%9D%97%E5%BC%80%E5%8F%91/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/myblog/images/avatar.gif">
+      <meta itemprop="name" content="woshiyigedacainiao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我的Java学习博客">
+      <meta itemprop="description" content="Java后端学习笔记、项目踩坑总结">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="RabbitMQ 消息模块开发 | 我的Java学习博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          RabbitMQ 消息模块开发
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-09-06 20:11:51 / 修改时间：20:12:16" itemprop="dateCreated datePublished" datetime="2026-09-06T20:11:51+08:00">2026-09-06</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="📖-第三步RabbitMQ-消息模块开发经验笔记"><a href="#📖-第三步RabbitMQ-消息模块开发经验笔记" class="headerlink" title="📖 第三步RabbitMQ 消息模块开发经验笔记"></a>📖 第三步RabbitMQ 消息模块开发经验笔记</h1><hr>
+<h1 id="📖-RabbitMQ-消息模块开发经验笔记"><a href="#📖-RabbitMQ-消息模块开发经验笔记" class="headerlink" title="📖 RabbitMQ 消息模块开发经验笔记"></a>📖 RabbitMQ 消息模块开发经验笔记</h1><hr>
+<h2 id="一、死信队列（DLX）实现延迟消息"><a href="#一、死信队列（DLX）实现延迟消息" class="headerlink" title="一、死信队列（DLX）实现延迟消息"></a>一、死信队列（DLX）实现延迟消息</h2><h3 id="1-1-什么是死信队列"><a href="#1-1-什么是死信队列" class="headerlink" title="1.1 什么是死信队列"></a>1.1 什么是死信队列</h3><p>死信队列（Dead Letter Exchange，DLX）是一种消息机制：当消息在队列中满足以下条件时，会被自动转发到另一个交换机（死信交换机）：</p>
+<ul>
+<li><strong>消息过期</strong>（TTL 超时）</li>
+<li><strong>消息被拒绝</strong>（basicNack &#x2F; basicReject，且 requeue&#x3D;false）</li>
+<li><strong>队列达到最大长度</strong></li>
+</ul>
+<h3 id="1-2-秒杀系统中的延迟消息设计"><a href="#1-2-秒杀系统中的延迟消息设计" class="headerlink" title="1.2 秒杀系统中的延迟消息设计"></a>1.2 秒杀系统中的延迟消息设计</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">订单创建成功</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">delayExchange ──→ delayQueue（TTL=30分钟，绑定了DLX）</span><br><span class="line">                        │</span><br><span class="line">                        │ 30分钟无人消费，消息过期</span><br><span class="line">                        ▼</span><br><span class="line">                  dlxExchange ──→ dlxQueue ──→ DlxConsumer（超时取消）</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-3-配置代码模板"><a href="#1-3-配置代码模板" class="headerlink" title="1.3 配置代码模板"></a>1.3 配置代码模板</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 延迟队列：关键是要设置三个参数</span></span><br><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">Queue</span> <span class="title function_">delayQueue</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> QueueBuilder.durable(DELAY_QUEUE)</span><br><span class="line">            .withArgument(<span class="string">&quot;x-dead-letter-exchange&quot;</span>, DLX_EXCHANGE)       <span class="comment">// 过期后转发到哪个交换机</span></span><br><span class="line">            .withArgument(<span class="string">&quot;x-dead-letter-routing-key&quot;</span>, DLX_ROUTING_KEY) <span class="comment">// 转发时用什么路由key</span></span><br><span class="line">            .withArgument(<span class="string">&quot;x-message-ttl&quot;</span>, ORDER_TTL)                   <span class="comment">// 消息存活时间（毫秒）</span></span><br><span class="line">            .build();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-4-⚠️-踩坑：注解方式无法配置死信"><a href="#1-4-⚠️-踩坑：注解方式无法配置死信" class="headerlink" title="1.4 ⚠️ 踩坑：注解方式无法配置死信"></a>1.4 ⚠️ 踩坑：注解方式无法配置死信</h3><p>用 <code>@RabbitListener</code> 的 <code>@QueueBinding</code> 注解可以自动创建交换机和队列，但<strong>无法设置 <code>x-dead-letter-exchange</code> 等参数</strong>。需要死信功能的队列，<strong>必须在配置类中手动声明为 @Bean</strong>。</p>
+<hr>
+<h2 id="二、消息类型必须一致"><a href="#二、消息类型必须一致" class="headerlink" title="二、消息类型必须一致"></a>二、消息类型必须一致</h2><h3 id="2-1-踩坑案例"><a href="#2-1-踩坑案例" class="headerlink" title="2.1 踩坑案例"></a>2.1 踩坑案例</h3><p><strong>发送端</strong>（OrderConsumer）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 发的是 String（订单号）</span></span><br><span class="line">rabbitTemplate.convertAndSend(DELAY_EXCHANGE, DELAY_ROUTING_KEY, dto.getOrderNo());</span><br></pre></td></tr></table></figure>
+
+<p><strong>接收端</strong>（DlxConsumer）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ❌ 错误：想反序列化成 OrderDto，但实际收到的是 String</span></span><br><span class="line"><span class="type">OrderDto</span> <span class="variable">dto</span> <span class="operator">=</span> JSONUtil.toBean(<span class="keyword">new</span> <span class="title class_">String</span>(message.getBody()), OrderDto.class);</span><br><span class="line"><span class="comment">// 运行时报错：JSON解析失败</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="2-2-解决原则"><a href="#2-2-解决原则" class="headerlink" title="2.2 解决原则"></a>2.2 解决原则</h3><table>
+<thead>
+<tr>
+<th>发送的内容</th>
+<th>接收时怎么处理</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>String</code>（如 orderNo）</td>
+<td><code>new String(message.getBody())</code> 直接拿</td>
+</tr>
+<tr>
+<td><code>对象</code>（如 OrderDto）</td>
+<td><code>JSONUtil.toBean(...)</code> 反序列化</td>
+</tr>
+<tr>
+<td><code>基本类型</code>（如 Long）</td>
+<td>同样 <code>new String(message.getBody())</code> 再转换</td>
+</tr>
+</tbody></table>
+<p><strong>记住：发什么类型，收什么类型，必须一一对应。</strong></p>
+<h3 id="2-3-设计建议"><a href="#2-3-设计建议" class="headerlink" title="2.3 设计建议"></a>2.3 设计建议</h3><p>延迟消息<strong>只发必要的最小信息</strong>。30分钟后超时取消只需要 <code>orderNo</code>，不需要整个 OrderDto：</p>
+<ul>
+<li>减少消息体积</li>
+<li>避免数据过期不一致</li>
+<li>用 orderNo 去数据库查最新数据即可</li>
+</ul>
+<hr>
+<h2 id="三、消费者重试机制"><a href="#三、消费者重试机制" class="headerlink" title="三、消费者重试机制"></a>三、消费者重试机制</h2><h3 id="3-1-踩坑：basicNack-requeue-true-导致无限循环"><a href="#3-1-踩坑：basicNack-requeue-true-导致无限循环" class="headerlink" title="3.1 踩坑：basicNack(requeue=true) 导致无限循环"></a>3.1 踩坑：<code>basicNack(requeue=true)</code> 导致无限循环</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ❌ 错误写法：无限重新入队</span></span><br><span class="line"><span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">    channel.basicNack(deliveryTag, <span class="literal">false</span>, <span class="literal">true</span>);  <span class="comment">// true = 永远重新入队</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>问题</strong>：如果是数据库宕机等持久性错误，消息会被无限重试，CPU 打满。</p>
+<h3 id="3-2-方案一：手动控制重试次数"><a href="#3-2-方案一：手动控制重试次数" class="headerlink" title="3.2 方案一：手动控制重试次数"></a>3.2 方案一：手动控制重试次数</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">    <span class="type">long</span> <span class="variable">retryCount</span> <span class="operator">=</span> message.getMessageProperties().getRetryCount();</span><br><span class="line">    <span class="keyword">if</span> (retryCount &lt; <span class="number">3</span>) &#123;</span><br><span class="line">        channel.basicNack(deliveryTag, <span class="literal">false</span>, <span class="literal">true</span>);   <span class="comment">// 重试</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        channel.basicAck(deliveryTag, <span class="literal">false</span>);           <span class="comment">// 放弃，记录日志</span></span><br><span class="line">        log.error(<span class="string">&quot;消息重试超过3次，需人工处理&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-方案二：Spring-Retry-自动重试（本项目采用）"><a href="#3-3-方案二：Spring-Retry-自动重试（本项目采用）" class="headerlink" title="3.3 方案二：Spring Retry 自动重试（本项目采用）"></a>3.3 方案二：Spring Retry 自动重试（本项目采用）</h3><p><strong>yaml 配置</strong>：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">rabbitmq:</span></span><br><span class="line">    <span class="attr">listener:</span></span><br><span class="line">      <span class="attr">simple:</span></span><br><span class="line">        <span class="attr">retry:</span></span><br><span class="line">          <span class="attr">enabled:</span> <span class="literal">true</span></span><br><span class="line">          <span class="attr">max-attempts:</span> <span class="number">3</span>          <span class="comment"># 最多重试3次</span></span><br><span class="line">          <span class="attr">initial-interval:</span> <span class="string">1000ms</span> <span class="comment"># 首次重试间隔</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>pom.xml 加依赖</strong>：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.retry<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-retry<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-4-⚠️-踩坑：Spring-Retry-与手动-catch-冲突"><a href="#3-4-⚠️-踩坑：Spring-Retry-与手动-catch-冲突" class="headerlink" title="3.4 ⚠️ 踩坑：Spring Retry 与手动 catch 冲突"></a>3.4 ⚠️ 踩坑：Spring Retry 与手动 catch 冲突</h3><p><strong>关键原则</strong>：Spring Retry 需要方法<strong>抛出异常</strong>才能触发重试。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ❌ 错误：自己catch住了异常，Spring Retry感知不到</span></span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">// 业务逻辑</span></span><br><span class="line">&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">    channel.basicNack(deliveryTag, <span class="literal">false</span>, <span class="literal">true</span>);  <span class="comment">// 你自己处理了</span></span><br><span class="line">    <span class="comment">// Spring Retry：我不知道出错了，不触发重试</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ✅ 正确：让异常抛给Spring</span></span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">// 业务逻辑</span></span><br><span class="line">&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">    <span class="keyword">throw</span> e;  <span class="comment">// Spring Retry 捕获，自动重试3次</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-5-区分两类错误"><a href="#3-5-区分两类错误" class="headerlink" title="3.5 区分两类错误"></a>3.5 区分两类错误</h3><table>
+<thead>
+<tr>
+<th>错误类型</th>
+<th>例子</th>
+<th>处理方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>确定的失败</strong>（重试也没用）</td>
+<td>重复下单、库存不足</td>
+<td><code>basicAck</code> 丢弃 + <code>return</code></td>
+</tr>
+<tr>
+<td><strong>临时的失败</strong>（重试可能好）</td>
+<td>DB连接断开、Redis超时</td>
+<td><code>throw e</code> 给 Spring Retry</td>
+</tr>
+</tbody></table>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 确定的失败 → 直接ack丢弃</span></span><br><span class="line"><span class="keyword">if</span> (redisStockHelper.hasOrdered(goodsId, userId)) &#123;</span><br><span class="line">    channel.basicAck(deliveryTag, <span class="literal">false</span>);</span><br><span class="line">    <span class="keyword">return</span>;  <span class="comment">// 不抛异常，不重试</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 临时的失败 → 抛给Spring</span></span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    miaoshaOrderService.save(order);</span><br><span class="line">    channel.basicAck(deliveryTag, <span class="literal">false</span>);</span><br><span class="line">&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">    <span class="keyword">throw</span> e;  <span class="comment">// Spring会重试</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="四、幂等性检查的位置"><a href="#四、幂等性检查的位置" class="headerlink" title="四、幂等性检查的位置"></a>四、幂等性检查的位置</h2><h3 id="4-1-踩坑：幂等检查放在扣库存之后"><a href="#4-1-踩坑：幂等检查放在扣库存之后" class="headerlink" title="4.1 踩坑：幂等检查放在扣库存之后"></a>4.1 踩坑：幂等检查放在扣库存之后</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ❌ 错误顺序</span></span><br><span class="line"><span class="type">int</span> <span class="variable">rows</span> <span class="operator">=</span> miaoshaGoodsMapper.deductStock(id);  <span class="comment">// 先扣了库存</span></span><br><span class="line"><span class="keyword">if</span> (hasOrdered(id, userId)) &#123;                     <span class="comment">// 然后才检查重复</span></span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Exception</span>(<span class="string">&quot;重复下单&quot;</span>);               <span class="comment">// 库存已经扣了！</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>后果</strong>：重复用户的库存被白白扣掉，而且抛异常后消息重新入队，又扣一次。</p>
+<h3 id="4-2-正确顺序"><a href="#4-2-正确顺序" class="headerlink" title="4.2 正确顺序"></a>4.2 正确顺序</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">① 幂等检查（最先，成本最低）</span><br><span class="line">    ↓</span><br><span class="line">② MySQL扣库存（WHERE stock &gt; 0 兜底）</span><br><span class="line">    ↓</span><br><span class="line">③ 创建订单</span><br><span class="line">    ↓</span><br><span class="line">④ 标记已下单</span><br></pre></td></tr></table></figure>
+
+<p><strong>原则</strong>：越靠前的检查，越能避免无效操作。幂等检查只需要一次 Redis 查询，成本极低，应该放在最前面。</p>
+<hr>
+<h2 id="五、枚举的正确使用"><a href="#五、枚举的正确使用" class="headerlink" title="五、枚举的正确使用"></a>五、枚举的正确使用</h2><h3 id="5-1-踩坑：用枚举对象设置数据库字段"><a href="#5-1-踩坑：用枚举对象设置数据库字段" class="headerlink" title="5.1 踩坑：用枚举对象设置数据库字段"></a>5.1 踩坑：用枚举对象设置数据库字段</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ❌ 错误：传了枚举对象，数据库需要的是整数</span></span><br><span class="line">.set(MiaoshaOrder::getStatus, OrderStatus.CANCELLED)</span><br><span class="line"></span><br><span class="line"><span class="comment">// ✅ 正确：传枚举的code值</span></span><br><span class="line">.set(MiaoshaOrder::getStatus, OrderStatus.CANCELLED.getCode())</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-2-枚举设计模板"><a href="#5-2-枚举设计模板" class="headerlink" title="5.2 枚举设计模板"></a>5.2 枚举设计模板</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Getter</span></span><br><span class="line"><span class="meta">@AllArgsConstructor</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">enum</span> <span class="title class_">OrderStatus</span> &#123;</span><br><span class="line">    UNPAID(<span class="number">0</span>, <span class="string">&quot;待支付&quot;</span>),</span><br><span class="line">    PAID(<span class="number">1</span>, <span class="string">&quot;已支付&quot;</span>),</span><br><span class="line">    CANCELLED(<span class="number">2</span>, <span class="string">&quot;已取消&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Integer code;   <span class="comment">// 数据库存的值</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String desc;    <span class="comment">// 描述信息</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>规则</strong>：</p>
+<ul>
+<li>数据库字段用 <code>.getCode()</code>（Integer）</li>
+<li>日志&#x2F;返回信息用 <code>.getDesc()</code>（String）</li>
+<li>比较时用 <code>.equals(枚举.getCode())</code></li>
+</ul>
+<hr>
+<h2 id="六、库存一致性（Redis-MySQL-双写）"><a href="#六、库存一致性（Redis-MySQL-双写）" class="headerlink" title="六、库存一致性（Redis + MySQL 双写）"></a>六、库存一致性（Redis + MySQL 双写）</h2><h3 id="6-1-完整的数据流"><a href="#6-1-完整的数据流" class="headerlink" title="6.1 完整的数据流"></a>6.1 完整的数据流</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">doMiaosha():</span><br><span class="line">  Redis Lua 预减库存（快速响应）</span><br><span class="line">      ↓ 发送MQ消息</span><br><span class="line">OrderConsumer:</span><br><span class="line">  MySQL deductStock（兜底扣减）</span><br><span class="line">      ↓ 创建订单</span><br><span class="line">DlxConsumer（超时取消）:</span><br><span class="line">  Redis rollbackStock（+1）    ← 别忘了Redis</span><br><span class="line">  MySQL restoreStock（+1）     ← 也别忘了MySQL</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-2-⚠️-踩坑：只回滚了一边"><a href="#6-2-⚠️-踩坑：只回滚了一边" class="headerlink" title="6.2 ⚠️ 踩坑：只回滚了一边"></a>6.2 ⚠️ 踩坑：只回滚了一边</h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>Redis</th>
+<th>MySQL</th>
+<th>超时取消时要做的</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>预减库存</td>
+<td>-1</td>
+<td>—</td>
+<td>不需要回滚（还没扣MySQL）</td>
+</tr>
+<tr>
+<td>消费者扣库存</td>
+<td>-1</td>
+<td>-1</td>
+<td><strong>两边都要 +1</strong></td>
+</tr>
+<tr>
+<td>消费者创建订单</td>
+<td>-1</td>
+<td>-1</td>
+<td><strong>两边都要 +1</strong></td>
+</tr>
+</tbody></table>
+<p><strong>原则</strong>：哪边扣了，哪边就要回滚。漏掉任何一边都会导致数据不一致。</p>
+<hr>
+<h2 id="七、convertAndSend-参数易忘"><a href="#七、convertAndSend-参数易忘" class="headerlink" title="七、convertAndSend 参数易忘"></a>七、convertAndSend 参数易忘</h2><h3 id="7-1-踩坑：漏掉消息体"><a href="#7-1-踩坑：漏掉消息体" class="headerlink" title="7.1 踩坑：漏掉消息体"></a>7.1 踩坑：漏掉消息体</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ❌ 漏了第三个参数 dto</span></span><br><span class="line">rabbitTemplate.convertAndSend(ORDER_EXCHANGE, ORDER_ROUTING_KEY);</span><br><span class="line"></span><br><span class="line"><span class="comment">// ✅ 正确：三个参数（交换机, 路由key, 消息体）</span></span><br><span class="line">rabbitTemplate.convertAndSend(ORDER_EXCHANGE, ORDER_ROUTING_KEY, dto);</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-2-常用重载方法"><a href="#7-2-常用重载方法" class="headerlink" title="7.2 常用重载方法"></a>7.2 常用重载方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 发往默认交换机（DirectExchange）</span></span><br><span class="line">rabbitTemplate.convertAndSend(exchange, routingKey, message);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 发消息并设置额外属性（如TTL）</span></span><br><span class="line">rabbitTemplate.convertAndSend(exchange, routingKey, message, msg -&gt; &#123;</span><br><span class="line">    msg.getMessageProperties().setExpiration(<span class="string">&quot;30000&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> msg;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="八、MQ-消息发送失败的补偿"><a href="#八、MQ-消息发送失败的补偿" class="headerlink" title="八、MQ 消息发送失败的补偿"></a>八、MQ 消息发送失败的补偿</h2><h3 id="8-1-场景"><a href="#8-1-场景" class="headerlink" title="8.1 场景"></a>8.1 场景</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Redis Lua 预减库存 ✅（已扣）</span><br><span class="line">    ↓</span><br><span class="line">MQ 发送失败 ❌（订单消息丢了）</span><br><span class="line">    ↓</span><br><span class="line">结果：Redis 库存少了，但订单没创建 → 数据不一致</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-2-解决方案：catch-中回滚"><a href="#8-2-解决方案：catch-中回滚" class="headerlink" title="8.2 解决方案：catch 中回滚"></a>8.2 解决方案：catch 中回滚</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    rabbitTemplate.convertAndSend(EXCHANGE, ROUTING_KEY, dto);</span><br><span class="line">&#125; <span class="keyword">catch</span> (AmqpException e) &#123;</span><br><span class="line">    <span class="comment">// MQ发送失败，把Redis库存加回来</span></span><br><span class="line">    stringRedisTemplate.opsForValue().increment(STOCK_KEY + msGoodsId);</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">MiaoshaException</span>(<span class="string">&quot;系统繁忙，请稍后重试&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="九、日志级别踩坑"><a href="#九、日志级别踩坑" class="headerlink" title="九、日志级别踩坑"></a>九、日志级别踩坑</h2><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ❌ 设为 error，log.info() 全部看不到</span></span><br><span class="line"><span class="attr">logging:</span></span><br><span class="line">  <span class="attr">level:</span></span><br><span class="line">    <span class="attr">com.heima.miaosha:</span> <span class="string">error</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ✅ 开发阶段用 debug 或 info</span></span><br><span class="line"><span class="attr">logging:</span></span><br><span class="line">  <span class="attr">level:</span></span><br><span class="line">    <span class="attr">com.heima.miaosha:</span> <span class="string">debug</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>注意</strong>：上线后可以改成 <code>info</code> 或 <code>warn</code>，但开发调试阶段一定要用 <code>debug</code>，否则很多关键日志看不到。</p>
+<hr>
+<h2 id="十、代码规范小记"><a href="#十、代码规范小记" class="headerlink" title="十、代码规范小记"></a>十、代码规范小记</h2><table>
+<thead>
+<tr>
+<th>规范</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Redis key 统一放常量类</td>
+<td><code>RedisKeyConstant.ORDERED_KEY</code>，不要硬编码字符串</td>
+</tr>
+<tr>
+<td>工具方法封装成 Helper</td>
+<td>如 <code>RedisStockHelper</code>，复用且语义清晰</td>
+</tr>
+<tr>
+<td>变量命名要准确</td>
+<td><code>deliveryTag</code> 不要写成 <code>consumerTag</code></td>
+</tr>
+<tr>
+<td>未使用的 import 及时清理</td>
+<td>保持代码整洁</td>
+</tr>
+<tr>
+<td>异常信息要有上下文</td>
+<td><code>log.error(&quot;xxx失败, id={}&quot;, id, e)</code> 方便排查</td>
+</tr>
+</tbody></table>
+<hr>
+<p>这份笔记覆盖了你在消息模块中遇到的<strong>所有问题</strong>。建议收藏，下次写 MQ 相关代码时对照检查。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/myblog/2026/09/06/Sentinel%E9%99%90%E6%B5%81/" rel="prev" title="Sentinel限流">
+                  <i class="fa fa-angle-left"></i> Sentinel限流
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/myblog/2026/09/06/%E7%A7%92%E6%9D%80%E6%A0%B8%E5%BF%83%E6%B5%81%E7%A8%8B/" rel="next" title="秒杀核心流程">
+                  秒杀核心流程 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">woshiyigedacainiao</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

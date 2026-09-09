@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/myblog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/myblog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/myblog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/myblog/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/myblog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css" integrity="sha256-4Lad8m4ZWW1Lgb9+sMVLYEfnIh7BjV1NQMEe79Pviks=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"woshiyigedacainiao.github.io","root":"/myblog/","images":"/myblog/images","scheme":"Muse","darkmode":true,"version":"8.29.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/myblog/js/config.js" defer></script>
+
+    <meta name="description" content="AIHub-BackendAIHub后端项目，提供用户认证、通用聊天助手、医疗助手专家、出行助手和PDF文档助手等功能。项目采用模块化设计，各模块可独立运行且技术栈清晰，适合新手快速上手。项目结构概览模块名称	功能类型	核心技术栈	数据存储方案chatAI	通用对话	LangChain4j+WebSearchEngine	MySQLchatMedical	医疗咨询	LangChain4j+Neo4">
+<meta property="og:type" content="article">
+<meta property="og:title" content="我的Java学习博客">
+<meta property="og:url" content="https://woshiyigedacainiao.github.io/myblog/2026/09/07/%E9%AB%98%E6%98%9FRAG%E7%9A%84%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3/index.html">
+<meta property="og:site_name" content="我的Java学习博客">
+<meta property="og:description" content="AIHub-BackendAIHub后端项目，提供用户认证、通用聊天助手、医疗助手专家、出行助手和PDF文档助手等功能。项目采用模块化设计，各模块可独立运行且技术栈清晰，适合新手快速上手。项目结构概览模块名称	功能类型	核心技术栈	数据存储方案chatAI	通用对话	LangChain4j+WebSearchEngine	MySQLchatMedical	医疗咨询	LangChain4j+Neo4">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-09-07T04:37:27.110Z">
+<meta property="article:modified_time" content="2026-09-07T04:37:27.111Z">
+<meta property="article:author" content="woshiyigedacainiao">
+<meta property="article:tag" content="Java,SpringBoot,MySQL,Redis">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://woshiyigedacainiao.github.io/myblog/2026/09/07/%E9%AB%98%E6%98%9FRAG%E7%9A%84%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://woshiyigedacainiao.github.io/myblog/2026/09/07/%E9%AB%98%E6%98%9FRAG%E7%9A%84%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3/","path":"2026/09/07/高星RAG的技术文档/","title":""}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title> | 我的Java学习博客</title>
+  
+
+
+
+
+
+
+
+
+  
+<script src="/myblog/js/utils.js" defer></script><script src="/myblog/js/motion.js" defer></script><script src="/myblog/js/sidebar.js" defer></script><script src="/myblog/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/myblog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-search popup-trigger" aria-label="搜索" role="button">
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/myblog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">我的Java学习博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-toggle" aria-label="切换导航栏" role="button">
+  </div>
+</div>
+
+
+
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-overview-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">woshiyigedacainiao</p>
+  <div class="site-description" itemprop="description">Java后端学习笔记、项目踩坑总结</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/myblog/archives/">
+          <span class="site-state-item-count">22</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://woshiyigedacainiao.github.io/myblog/2026/09/07/%E9%AB%98%E6%98%9FRAG%E7%9A%84%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/myblog/images/avatar.gif">
+      <meta itemprop="name" content="woshiyigedacainiao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我的Java学习博客">
+      <meta itemprop="description" content="Java后端学习笔记、项目踩坑总结">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | 我的Java学习博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2026-09-07 12:37:27" itemprop="dateCreated datePublished" datetime="2026-09-07T12:37:27+08:00">2026-09-07</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>AIHub-Backend<br>AIHub后端项目，提供用户认证、通用聊天助手、医疗助手专家、出行助手和PDF文档助手等功能。项目采用模块化设计，各模块可独立运行且技术栈清晰，适合新手快速上手。<br>项目结构概览<br>模块名称	功能类型	核心技术栈	数据存储方案<br>chatAI	通用对话	LangChain4j+WebSearchEngine	MySQL<br>chatMedical	医疗咨询	LangChain4j+Neo4j	Neo4j+MySQL<br>chatTravel	出行规划	LangChain4j+MCP+地图API	MySQL+向量化数据库<br>chatPDF	PDF文档问答	LangChain4j+向量化数据库	向量化数据库+MySQL<br>模块详解</p>
+<ol>
+<li>用户登录模块<br>功能:<br>JWT认证体系（支持Token自动续期）<br>完整用户生命周期管理（注册&#x2F;登录&#x2F;密码重置&#x2F;注销）<br>基于角色的权限控制（RBAC基础实现）<br>技术实现:<br>Spring Security + JWT工具库（使用HMAC-SHA512算法）<br>MySQL数据库存储用户凭证（密码使用BCrypt加密）<br>Redis用于token黑名单管理（支持集群部署）<br>邮件服务集成（JavaMailSender实现验证码发送）<br>安全增强:<br>登录失败次数限制（基于Redis的滑动窗口限流）<br>密码复杂度校验（正则表达式验证）</li>
+<li>通用聊天模块 (chatAI)<br>核心功能:<br>基于LangChain4j的对话交互（支持流式响应）<br>实时联网搜索功能（集成SearchAPI多引擎支持）<br>对话历史持久化（支持跨设备同步）<br>技术实现:<br>LangChain4j集成Qwen大模型（配置温度系数0.7）<br>WebSearchEngine实现搜索增强（支持Google&#x2F;Bing自定义搜索）<br>ChatMemoryStore持久化对话历史（MySQL存储结构优化）<br>使用chat_sessions表管理会话状态（包含最后访问时间TTL机制）<br>支持Markdown格式输出（前端自动渲染）<br>特色能力:<br>多级缓存机制（本地Caffeine+Redis二级缓存）<br>敏感词过滤（基于DFA算法实现）</li>
+<li>医疗助手专家模块 (chatMedical)<br>核心功能:<br>医疗知识图谱查询（7类实体+10种关系）<br>症状自检辅助（基于决策树算法）<br>药物相互作用查询<br>技术实现:<br>LangChain4j集成Qwen大模型（医疗垂直领域微调）<br>Neo4j存储和查询医疗知识图谱（Cypher查询优化）<br>使用APOC库实现复杂路径查询<br>医疗数据更新脚本（Python定时任务每日同步）<br>构建医疗知识图谱的实体关系：</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/myblog/2026/09/07/%E9%A1%B9%E7%9B%AE%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3/" rel="prev" title="高星RAG的技术文档">
+                  <i class="fa fa-angle-left"></i> 高星RAG的技术文档
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/myblog/2026/09/07/%E5%AD%A6%E4%B9%A0%E4%BC%81%E4%B8%9A%E7%BA%A7%E7%99%BB%E5%BD%95%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B/" rel="next" title="学习企业级登录认证流程">
+                  学习企业级登录认证流程 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">woshiyigedacainiao</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

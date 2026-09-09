@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/myblog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/myblog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/myblog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/myblog/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/myblog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css" integrity="sha256-4Lad8m4ZWW1Lgb9+sMVLYEfnIh7BjV1NQMEe79Pviks=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"woshiyigedacainiao.github.io","root":"/myblog/","images":"/myblog/images","scheme":"Muse","darkmode":true,"version":"8.29.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/myblog/js/config.js" defer></script>
+
+    <meta name="description" content="优化下单和支付📖 秒杀系统性能优化经验笔记一、秒杀下单优化：Lua 脚本合并 + 去除分布式锁1.1 优化背景在优化前，秒杀下单流程（doMiaosha）存在严重的性能瓶颈：每次请求需要多次 Redis 调用，并且使用 Redisson 分布式锁将所有用户对同一商品的请求串行化处理，导致并发能力极低。 1.2 优化前的流程与问题原始流程： 12345① hasOrdered()      → R">
+<meta property="og:type" content="article">
+<meta property="og:title" content="优化下单和支付">
+<meta property="og:url" content="https://woshiyigedacainiao.github.io/myblog/2026/09/06/%E4%BC%98%E5%8C%96%E4%B8%8B%E5%8D%95%E5%92%8C%E6%94%AF%E4%BB%98/index.html">
+<meta property="og:site_name" content="我的Java学习博客">
+<meta property="og:description" content="优化下单和支付📖 秒杀系统性能优化经验笔记一、秒杀下单优化：Lua 脚本合并 + 去除分布式锁1.1 优化背景在优化前，秒杀下单流程（doMiaosha）存在严重的性能瓶颈：每次请求需要多次 Redis 调用，并且使用 Redisson 分布式锁将所有用户对同一商品的请求串行化处理，导致并发能力极低。 1.2 优化前的流程与问题原始流程： 12345① hasOrdered()      → R">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-09-06T12:18:12.000Z">
+<meta property="article:modified_time" content="2026-09-06T12:18:31.366Z">
+<meta property="article:author" content="woshiyigedacainiao">
+<meta property="article:tag" content="Java,SpringBoot,MySQL,Redis">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://woshiyigedacainiao.github.io/myblog/2026/09/06/%E4%BC%98%E5%8C%96%E4%B8%8B%E5%8D%95%E5%92%8C%E6%94%AF%E4%BB%98/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://woshiyigedacainiao.github.io/myblog/2026/09/06/%E4%BC%98%E5%8C%96%E4%B8%8B%E5%8D%95%E5%92%8C%E6%94%AF%E4%BB%98/","path":"2026/09/06/优化下单和支付/","title":"优化下单和支付"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>优化下单和支付 | 我的Java学习博客</title>
+  
+
+
+
+
+
+
+
+
+  
+<script src="/myblog/js/utils.js" defer></script><script src="/myblog/js/motion.js" defer></script><script src="/myblog/js/sidebar.js" defer></script><script src="/myblog/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/myblog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-search popup-trigger" aria-label="搜索" role="button">
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/myblog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">我的Java学习博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-toggle" aria-label="切换导航栏" role="button">
+  </div>
+</div>
+
+
+
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BC%98%E5%8C%96%E4%B8%8B%E5%8D%95%E5%92%8C%E6%94%AF%E4%BB%98"><span class="nav-number">1.</span> <span class="nav-text">优化下单和支付</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%93%96-%E7%A7%92%E6%9D%80%E7%B3%BB%E7%BB%9F%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E7%BB%8F%E9%AA%8C%E7%AC%94%E8%AE%B0"><span class="nav-number">2.</span> <span class="nav-text">📖 秒杀系统性能优化经验笔记</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E7%A7%92%E6%9D%80%E4%B8%8B%E5%8D%95%E4%BC%98%E5%8C%96%EF%BC%9ALua-%E8%84%9A%E6%9C%AC%E5%90%88%E5%B9%B6-%E5%8E%BB%E9%99%A4%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81"><span class="nav-number">2.1.</span> <span class="nav-text">一、秒杀下单优化：Lua 脚本合并 + 去除分布式锁</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-%E4%BC%98%E5%8C%96%E8%83%8C%E6%99%AF"><span class="nav-number">2.1.1.</span> <span class="nav-text">1.1 优化背景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-%E4%BC%98%E5%8C%96%E5%89%8D%E7%9A%84%E6%B5%81%E7%A8%8B%E4%B8%8E%E9%97%AE%E9%A2%98"><span class="nav-number">2.1.2.</span> <span class="nav-text">1.2 优化前的流程与问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-%E4%BC%98%E5%8C%96%E6%80%9D%E8%B7%AF"><span class="nav-number">2.1.3.</span> <span class="nav-text">1.3 优化思路</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-%E4%BC%98%E5%8C%96%E5%90%8E%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-number">2.1.4.</span> <span class="nav-text">1.4 优化后的实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-5-%E4%BC%98%E5%8C%96%E5%89%8D%E5%90%8E%E5%AF%B9%E6%AF%94"><span class="nav-number">2.1.5.</span> <span class="nav-text">1.5 优化前后对比</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-6-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8F%AF%E4%BB%A5%E5%AE%89%E5%85%A8%E5%9C%B0%E5%8E%BB%E6%8E%89%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%EF%BC%9F"><span class="nav-number">2.1.6.</span> <span class="nav-text">1.6 为什么可以安全地去掉分布式锁？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E6%94%AF%E4%BB%98%E4%BC%98%E5%8C%96%EF%BC%9ARedisson-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81-DB-%E5%8E%9F%E5%AD%90%E6%9B%B4%E6%96%B0%E5%8F%8C%E9%87%8D%E9%98%B2%E6%8A%A4"><span class="nav-number">2.2.</span> <span class="nav-text">二、支付优化：Redisson 分布式锁 + DB 原子更新双重防护</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-%E4%BC%98%E5%8C%96%E8%83%8C%E6%99%AF"><span class="nav-number">2.2.1.</span> <span class="nav-text">2.1 优化背景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-%E4%BC%98%E5%8C%96%E5%89%8D%E7%9A%84%E6%B5%81%E7%A8%8B%E4%B8%8E%E9%97%AE%E9%A2%98"><span class="nav-number">2.2.2.</span> <span class="nav-text">2.2 优化前的流程与问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-%E4%BC%98%E5%8C%96%E6%80%9D%E8%B7%AF%EF%BC%9A%E5%8F%8C%E9%87%8D%E9%98%B2%E6%8A%A4"><span class="nav-number">2.2.3.</span> <span class="nav-text">2.3 优化思路：双重防护</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-%E4%BC%98%E5%8C%96%E5%90%8E%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-number">2.2.4.</span> <span class="nav-text">2.4 优化后的实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-5-%E5%85%B6%E4%BB%96%E6%94%B9%E8%BF%9B"><span class="nav-number">2.2.5.</span> <span class="nav-text">2.5 其他改进</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-6-%E4%BC%98%E5%8C%96%E5%89%8D%E5%90%8E%E5%AF%B9%E6%AF%94"><span class="nav-number">2.2.6.</span> <span class="nav-text">2.6 优化前后对比</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E4%B8%A4%E6%AC%A1%E4%BC%98%E5%8C%96%E7%9A%84%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3%E6%80%BB%E7%BB%93"><span class="nav-number">2.3.</span> <span class="nav-text">三、两次优化的核心思想总结</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">woshiyigedacainiao</p>
+  <div class="site-description" itemprop="description">Java后端学习笔记、项目踩坑总结</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/myblog/archives/">
+          <span class="site-state-item-count">22</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://woshiyigedacainiao.github.io/myblog/2026/09/06/%E4%BC%98%E5%8C%96%E4%B8%8B%E5%8D%95%E5%92%8C%E6%94%AF%E4%BB%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/myblog/images/avatar.gif">
+      <meta itemprop="name" content="woshiyigedacainiao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我的Java学习博客">
+      <meta itemprop="description" content="Java后端学习笔记、项目踩坑总结">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="优化下单和支付 | 我的Java学习博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          优化下单和支付
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-09-06 20:18:12 / 修改时间：20:18:31" itemprop="dateCreated datePublished" datetime="2026-09-06T20:18:12+08:00">2026-09-06</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="优化下单和支付"><a href="#优化下单和支付" class="headerlink" title="优化下单和支付"></a>优化下单和支付</h1><h1 id="📖-秒杀系统性能优化经验笔记"><a href="#📖-秒杀系统性能优化经验笔记" class="headerlink" title="📖 秒杀系统性能优化经验笔记"></a>📖 秒杀系统性能优化经验笔记</h1><h2 id="一、秒杀下单优化：Lua-脚本合并-去除分布式锁"><a href="#一、秒杀下单优化：Lua-脚本合并-去除分布式锁" class="headerlink" title="一、秒杀下单优化：Lua 脚本合并 + 去除分布式锁"></a>一、秒杀下单优化：Lua 脚本合并 + 去除分布式锁</h2><h3 id="1-1-优化背景"><a href="#1-1-优化背景" class="headerlink" title="1.1 优化背景"></a>1.1 优化背景</h3><p>在优化前，秒杀下单流程（<code>doMiaosha</code>）存在严重的性能瓶颈：每次请求需要多次 Redis 调用，并且使用 Redisson 分布式锁将所有用户对同一商品的请求<strong>串行化</strong>处理，导致并发能力极低。</p>
+<h3 id="1-2-优化前的流程与问题"><a href="#1-2-优化前的流程与问题" class="headerlink" title="1.2 优化前的流程与问题"></a>1.2 优化前的流程与问题</h3><p><strong>原始流程</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">① hasOrdered()      → Redis SISMEMBER 调用（检查是否重复下单）</span><br><span class="line">② tryLock()         → Redisson 分布式锁获取（所有用户排队等待）</span><br><span class="line">③ Lua 脚本执行      → Redis 调用（原子扣减库存）</span><br><span class="line">④ 发送 MQ 消息      → RabbitMQ 调用</span><br><span class="line">⑤ unlock()          → 释放分布式锁</span><br></pre></td></tr></table></figure>
+
+<p><strong>存在的问题</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>影响</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>分布式锁将并发串行化</td>
+<td>100 个用户抢 100 个库存，同一时刻只有 1 个用户能进入临界区，吞吐量极低</td>
+</tr>
+<tr>
+<td>3 次独立 Redis 网络调用</td>
+<td><code>hasOrdered</code> + <code>Lua</code> + <code>rollback</code>（失败时），每次都有网络 RTT 开销</td>
+</tr>
+<tr>
+<td><code>hasOrdered</code> 与 Lua 之间存在时间窗口</td>
+<td>虽然概率极低，但理论上两个请求可能在 <code>hasOrdered</code> 检查通过后同时进入锁等待，先后执行 Lua</td>
+</tr>
+</tbody></table>
+<h3 id="1-3-优化思路"><a href="#1-3-优化思路" class="headerlink" title="1.3 优化思路"></a>1.3 优化思路</h3><p><strong>核心思想</strong>：Redis Lua 脚本本身具有原子性——Redis 单线程模型保证一个 Lua 脚本执行期间不会被其他命令插入。因此，如果把「重复检查 + 库存扣减 + 用户标记」三步操作合并到一个 Lua 脚本中，就天然具备原子性，<strong>不再需要分布式锁</strong>。</p>
+<h3 id="1-4-优化后的实现"><a href="#1-4-优化后的实现" class="headerlink" title="1.4 优化后的实现"></a>1.4 优化后的实现</h3><p><strong>Lua 脚本</strong>（<code>RedisStockHelper.java</code>）：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- KEYS[1] = 库存key（miaosha:stock:&#123;活动ID&#125;）</span></span><br><span class="line"><span class="comment">-- KEYS[2] = 已购用户set（miaosha:ordered:&#123;活动ID&#125;）</span></span><br><span class="line"><span class="comment">-- ARGV[1] = 用户ID</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> stock = <span class="built_in">tonumber</span>(redis.call(<span class="string">&#x27;get&#x27;</span>, KEYS[<span class="number">1</span>]))</span><br><span class="line"><span class="keyword">if</span> stock == <span class="literal">nil</span> <span class="keyword">then</span> <span class="keyword">return</span> <span class="number">-1</span> <span class="keyword">end</span></span><br><span class="line"><span class="keyword">if</span> redis.call(<span class="string">&#x27;sismember&#x27;</span>, KEYS[<span class="number">2</span>], ARGV[<span class="number">1</span>]) == <span class="number">1</span> <span class="keyword">then</span> <span class="keyword">return</span> <span class="number">-2</span> <span class="keyword">end</span></span><br><span class="line"><span class="keyword">if</span> stock &gt; <span class="number">0</span> <span class="keyword">then</span></span><br><span class="line">    redis.call(<span class="string">&#x27;decr&#x27;</span>, KEYS[<span class="number">1</span>])</span><br><span class="line">    redis.call(<span class="string">&#x27;sadd&#x27;</span>, KEYS[<span class="number">2</span>], ARGV[<span class="number">1</span>])</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>返回值设计</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>返回值</th>
+<th>含义</th>
+<th>Java 侧处理</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>1</code></td>
+<td>扣库存成功 + 已标记用户</td>
+<td>继续发送 MQ 消息</td>
+</tr>
+<tr>
+<td><code>0</code></td>
+<td>库存不足</td>
+<td>抛出”已售罄”异常</td>
+</tr>
+<tr>
+<td><code>-1</code></td>
+<td>库存 key 不存在</td>
+<td>抛出”库存数据异常”异常</td>
+</tr>
+<tr>
+<td><code>-2</code></td>
+<td>用户已下过单</td>
+<td>抛出”重复下单”异常</td>
+</tr>
+</tbody></table>
+<p><strong>Java 调用侧</strong>（<code>MiaoshaOrderServiceImpl.doMiaosha</code>）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 一次调用完成：检查重复 + 扣库存 + 标记已购</span></span><br><span class="line"><span class="type">Long</span> <span class="variable">result</span> <span class="operator">=</span> redisStockHelper.deductStockAndMark(msGoodsId, userId);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (result == <span class="literal">null</span> || result == -<span class="number">1</span>) &#123; <span class="keyword">throw</span> ... &#125;  <span class="comment">// 库存异常</span></span><br><span class="line"><span class="keyword">if</span> (result == -<span class="number">2</span>) &#123; <span class="keyword">throw</span> ... &#125;                     <span class="comment">// 重复下单</span></span><br><span class="line"><span class="keyword">if</span> (result == <span class="number">0</span>) &#123; <span class="keyword">throw</span> ... &#125;                      <span class="comment">// 库存不足</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 发送 MQ 消息...</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>MQ 失败时的完整回滚</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">catch</span> (AmqpException e) &#123;</span><br><span class="line">    redisStockHelper.rollbackStock(msGoodsId);       <span class="comment">// 回滚库存 +1</span></span><br><span class="line">    redisStockHelper.removeOrderedMark(msGoodsId, userId); <span class="comment">// 移除用户标记</span></span><br><span class="line">    <span class="keyword">throw</span> ...;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>⚠️ <strong>踩坑点</strong>：优化后 Lua 脚本同时操作了库存和 ordered 集合，MQ 发送失败时<strong>必须同时回滚两者</strong>。如果只回滚库存不移除标记，用户将被永久标记为”已下单”，无法再次参与秒杀。</p>
+</blockquote>
+<h3 id="1-5-优化前后对比"><a href="#1-5-优化前后对比" class="headerlink" title="1.5 优化前后对比"></a>1.5 优化前后对比</h3><table>
+<thead>
+<tr>
+<th>指标</th>
+<th>优化前</th>
+<th>优化后</th>
+<th>提升</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Redis 调用次数</td>
+<td>3 次（hasOrdered + Lua + 可能的 rollback）</td>
+<td><strong>1 次</strong>（Lua 原子完成）</td>
+<td>减少 66%</td>
+</tr>
+<tr>
+<td>并发模型</td>
+<td>Redisson 分布式锁，所有用户串行等待</td>
+<td>Redis 单线程原子处理，无锁竞争</td>
+<td>本质性改变</td>
+</tr>
+<tr>
+<td>网络往返</td>
+<td>锁获取&#x2F;释放 &#x3D; 额外 2 次网络 RTT</td>
+<td>0 次额外往返</td>
+<td>减少 100%</td>
+</tr>
+<tr>
+<td>代码复杂度</td>
+<td>Lua 脚本 + Redisson 锁 + try-finally</td>
+<td>一个 Lua 脚本调用</td>
+<td>大幅简化</td>
+</tr>
+<tr>
+<td>吞吐量预期</td>
+<td>受限于锁竞争（QPS ≈ 数百）</td>
+<td>Redis 单线程原子处理（QPS ≈ 数万）</td>
+<td><strong>提升 5-10 倍</strong></td>
+</tr>
+</tbody></table>
+<h3 id="1-6-为什么可以安全地去掉分布式锁？"><a href="#1-6-为什么可以安全地去掉分布式锁？" class="headerlink" title="1.6 为什么可以安全地去掉分布式锁？"></a>1.6 为什么可以安全地去掉分布式锁？</h3><table>
+<thead>
+<tr>
+<th>疑问</th>
+<th>解答</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>没有锁，会不会超卖？</td>
+<td>不会。Redis 单线程模型保证 Lua 脚本原子执行，<code>get → 判断 → decr</code> 之间不会插入其他命令</td>
+</tr>
+<tr>
+<td>没有锁，会不会重复下单？</td>
+<td>不会。<code>sismember</code> 和 <code>sadd</code> 在同一个 Lua 脚本内原子执行，检查和标记之间不会插入其他命令</td>
+</tr>
+<tr>
+<td>分布式锁之前起什么作用？</td>
+<td>之前锁的作用是把「hasOrdered 检查」和「Lua 扣减」两步变成串行。现在合并为一步后，锁就失去了意义</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="二、支付优化：Redisson-分布式锁-DB-原子更新双重防护"><a href="#二、支付优化：Redisson-分布式锁-DB-原子更新双重防护" class="headerlink" title="二、支付优化：Redisson 分布式锁 + DB 原子更新双重防护"></a>二、支付优化：Redisson 分布式锁 + DB 原子更新双重防护</h2><h3 id="2-1-优化背景"><a href="#2-1-优化背景" class="headerlink" title="2.1 优化背景"></a>2.1 优化背景</h3><p>支付接口（<code>payOrder</code>）存在经典的 <strong>check-then-act 竞态条件</strong>：用户快速连续点击支付按钮，或网络重试导致同一支付请求并发到达服务端，可能造成<strong>重复扣款</strong>。</p>
+<h3 id="2-2-优化前的流程与问题"><a href="#2-2-优化前的流程与问题" class="headerlink" title="2.2 优化前的流程与问题"></a>2.2 优化前的流程与问题</h3><p><strong>原始流程</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">MiaoshaOrder</span> <span class="variable">order</span> <span class="operator">=</span> queryOrderByOrderNo(orderNo);     <span class="comment">// ① 查订单</span></span><br><span class="line"><span class="keyword">if</span> (order.getStatus().equals(UNPAID)) &#123;                 <span class="comment">// ② 检查状态</span></span><br><span class="line">    <span class="type">MiaoshaUser</span> <span class="variable">user</span> <span class="operator">=</span> selectById(order.getUserId());   <span class="comment">// ③ 查余额</span></span><br><span class="line">    <span class="keyword">if</span> (user.getBalance().compareTo(total) &gt;= <span class="number">0</span>) &#123;      <span class="comment">// ④ 检查余额</span></span><br><span class="line">        user.setBalance(balance.subtract(total));       <span class="comment">// ⑤ 扣余额</span></span><br><span class="line">        updateById(user);                               <span class="comment">// ⑥ 更新用户</span></span><br><span class="line">        update(order, status=PAID);                     <span class="comment">// ⑦ 更新订单</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>并发问题时序图</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Thread A（用户点击支付）          Thread B（用户再次点击）</span><br><span class="line">────────────────────          ────────────────────────</span><br><span class="line">① 查订单 → status=UNPAID</span><br><span class="line">                              ① 查订单 → status=UNPAID（A还没更新！）</span><br><span class="line">② 余额 1000 &gt;= 100 ✓</span><br><span class="line">                              ② 余额 1000 &gt;= 100 ✓（A还没扣！）</span><br><span class="line">③ 扣余额 → 余额变 900</span><br><span class="line">                              ③ 扣余额 → 余额变 800（同一笔订单扣了两次！）</span><br><span class="line">④ 订单状态 → PAID</span><br><span class="line">                              ④ 订单状态 → PAID</span><br></pre></td></tr></table></figure>
+
+<p><strong>结果</strong>：用户被扣了 200 元，但只买了一笔 100 元的商品。</p>
+<h3 id="2-3-优化思路：双重防护"><a href="#2-3-优化思路：双重防护" class="headerlink" title="2.3 优化思路：双重防护"></a>2.3 优化思路：双重防护</h3><p>采用<strong>两层防线</strong>确保支付安全：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">第一层：Redisson 分布式锁（互斥，避免并发进入）</span><br><span class="line">第二层：DB 原子更新 WHERE status=0（兜底，即使锁失效也不会重复扣款）</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-4-优化后的实现"><a href="#2-4-优化后的实现" class="headerlink" title="2.4 优化后的实现"></a>2.4 优化后的实现</h3><p><strong>分布式锁设计</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 锁的粒度：单个订单</span></span><br><span class="line"><span class="type">RLock</span> <span class="variable">lock</span> <span class="operator">=</span> redissonClient.getLock(RedisKeyConstant.MIAOSHA_LOCK_KEY + <span class="string">&quot;pay:&quot;</span> + orderNo);</span><br><span class="line"></span><br><span class="line"><span class="comment">// tryLock(0, 10, TimeUnit.SECONDS)</span></span><br><span class="line"><span class="comment">// 参数1：waitTime=0 → 拿不到锁立刻拒绝，不排队等待</span></span><br><span class="line"><span class="comment">// 参数2：leaseTime=10 → 锁最多持有10秒自动释放，防止死锁</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>为什么锁 key 是 <code>pay:{orderNo}</code> 而不是 <code>pay:{userId}</code>？</strong><br>因为要防止的是「同一订单被重复支付」，不是「同一用户重复操作」。不同订单的支付应该互不影响。</p>
+</blockquote>
+<p><strong>DB 原子更新（最后防线）</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">boolean</span> <span class="variable">result</span> <span class="operator">=</span> lambdaUpdate()</span><br><span class="line">        .eq(MiaoshaOrder::getOrderNo, orderNo)</span><br><span class="line">        .eq(MiaoshaOrder::getStatus, OrderStatus.UNPAID.getCode())  <span class="comment">// ← 关键！</span></span><br><span class="line">        .set(MiaoshaOrder::getStatus, OrderStatus.PAID.getCode())</span><br><span class="line">        .set(MiaoshaOrder::getPayTime, LocalDateTime.now())</span><br><span class="line">        .update();</span><br></pre></td></tr></table></figure>
+
+<p>生成的 SQL：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> miaosha_order</span><br><span class="line"><span class="keyword">SET</span> status <span class="operator">=</span> <span class="number">1</span>, pay_time <span class="operator">=</span> NOW()</span><br><span class="line"><span class="keyword">WHERE</span> order_no <span class="operator">=</span> ? <span class="keyword">AND</span> status <span class="operator">=</span> <span class="number">0</span></span><br></pre></td></tr></table></figure>
+
+<p>即使分布式锁因某种原因失效（如 Redis 主从切换），<code>AND status = 0</code> 保证只有第一次 UPDATE 能成功。第二次 UPDATE 匹配不到行，<code>result = false</code>，进入异常处理。</p>
+<p><strong>完整的异常处理链</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="type">boolean</span> <span class="variable">tryLock</span> <span class="operator">=</span> lock.tryLock(<span class="number">0</span>, <span class="number">10</span>, TimeUnit.SECONDS);</span><br><span class="line">    <span class="keyword">if</span> (!tryLock) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">MiaoshaException</span>(<span class="number">409</span>, <span class="string">&quot;支付处理中，请勿重复提交&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// ... 业务逻辑 ...</span></span><br><span class="line">&#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">    Thread.currentThread().interrupt();  <span class="comment">// 恢复中断标志</span></span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">MiaoshaException</span>(<span class="number">500</span>, <span class="string">&quot;系统异常&quot;</span>);</span><br><span class="line">&#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (lock.isHeldByCurrentThread()) &#123;</span><br><span class="line">        lock.unlock();  <span class="comment">// 确保锁释放</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-5-其他改进"><a href="#2-5-其他改进" class="headerlink" title="2.5 其他改进"></a>2.5 其他改进</h3><table>
+<thead>
+<tr>
+<th>改进点</th>
+<th>优化前</th>
+<th>优化后</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>余额不足</td>
+<td>静默返回 <code>false</code>，用户不知道原因</td>
+<td>抛出明确异常 <code>&quot;余额不足，无法支付&quot;</code></td>
+</tr>
+<tr>
+<td>判断顺序</td>
+<td>先判断 UNPAID，再判断 PAID</td>
+<td>先判断 PAID（快速拒绝重复），再判断非 UNPAID</td>
+</tr>
+<tr>
+<td>DB 更新兜底</td>
+<td>无 <code>WHERE status</code> 条件</td>
+<td><code>WHERE status = 0</code> 原子更新</td>
+</tr>
+</tbody></table>
+<h3 id="2-6-优化前后对比"><a href="#2-6-优化前后对比" class="headerlink" title="2.6 优化前后对比"></a>2.6 优化前后对比</h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>优化前</th>
+<th>优化后</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>用户连续点击两次支付</td>
+<td>❌ 可能扣两次钱</td>
+<td>✅ 第二次被锁拒绝（<code>tryLock</code> 返回 false）</td>
+</tr>
+<tr>
+<td>两个线程同时进入临界区</td>
+<td>❌ check-then-act 竞态条件</td>
+<td>✅ 锁串行化 + DB 原子更新双重保障</td>
+</tr>
+<tr>
+<td>锁意外失效（Redis 故障）</td>
+<td>❌ 无兜底机制</td>
+<td>✅ <code>WHERE status=0</code> 保证只更新一次</td>
+</tr>
+<tr>
+<td>余额不足</td>
+<td>静默返回 false，前端无法区分</td>
+<td>抛出明确异常，前端可提示用户</td>
+</tr>
+<tr>
+<td>不同订单并发支付</td>
+<td>互不影响</td>
+<td>互不影响（锁粒度是 orderNo，不是 userId）</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="三、两次优化的核心思想总结"><a href="#三、两次优化的核心思想总结" class="headerlink" title="三、两次优化的核心思想总结"></a>三、两次优化的核心思想总结</h2><table>
+<thead>
+<tr>
+<th>优化项</th>
+<th>核心思想</th>
+<th>技术手段</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>秒杀下单</td>
+<td><strong>合并操作，减少临界区</strong></td>
+<td>Lua 脚本原子性合并三步操作，消除锁的需求</td>
+</tr>
+<tr>
+<td>支付</td>
+<td><strong>互斥 + 兜底，双重防线</strong></td>
+<td>Redisson 锁保证互斥 + DB WHERE 条件保证原子性</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>关键经验</strong>：</p>
+<ol>
+<li><strong>能用原子操作就不用锁</strong>：Redis Lua 脚本天然原子，能合并操作就合并，避免锁带来的性能损耗和复杂性。</li>
+<li><strong>关键操作必须有兜底</strong>：分布式锁不是万能的（Redis 主从切换、网络分区都可能导致锁失效），数据库的 <code>WHERE</code> 条件更新是最终防线。</li>
+<li><strong>锁的粒度决定并发上限</strong>：<code>lock:{goodsId}</code> 让所有用户串行（秒杀场景不得不如此），<code>lock:pay:{orderNo}</code> 只让同一订单串行（不同订单互不影响）。设计锁时必须考虑粒度。</li>
+</ol>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/myblog/2026/09/06/%E7%A7%92%E6%9D%80%E7%B3%BB%E7%BB%9F%E6%8A%80%E6%9C%AF%E7%BB%8F%E9%AA%8C%E7%AC%94%E8%AE%B0/" rel="prev" title="秒杀系统技术经验笔记">
+                  <i class="fa fa-angle-left"></i> 秒杀系统技术经验笔记
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/myblog/2026/09/06/Git%E5%88%86%E5%B8%83%E5%BC%8F%E6%8E%A7%E5%88%B6%E5%B7%A5%E5%85%B7/" rel="next" title="Git分布式控制工具">
+                  Git分布式控制工具 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">woshiyigedacainiao</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

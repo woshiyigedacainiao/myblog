@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/myblog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/myblog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/myblog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/myblog/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/myblog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css" integrity="sha256-4Lad8m4ZWW1Lgb9+sMVLYEfnIh7BjV1NQMEe79Pviks=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"woshiyigedacainiao.github.io","root":"/myblog/","images":"/myblog/images","scheme":"Muse","darkmode":true,"version":"8.29.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/myblog/js/config.js" defer></script>
+
+    <meta name="description" content="从项目搭建到第 2 步完成过程中遇到的所有问题和解决方案的完整笔记。 秒杀系统开发问题记录一、环境配置类问题1. Maven Wrapper 缺失文件报错： 1找不到文件 .mvn&#x2F;wrapper&#x2F;maven-wrapper.properties。将改用 Maven 捆绑版本。  原因：.mvn&#x2F;wrapper&#x2F; 目录为空，缺少 maven-wrapper.properties 配置文件。 解决：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从项目搭建到第 2 步完成过程中遇到的所有问题和解决方案的完整笔记">
+<meta property="og:url" content="https://woshiyigedacainiao.github.io/myblog/2026/09/06/%E4%BB%8E%E9%A1%B9%E7%9B%AE%E6%90%AD%E5%BB%BA%E5%88%B0%E7%AC%AC-2-%E6%AD%A5%E5%AE%8C%E6%88%90%E8%BF%87%E7%A8%8B%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E6%89%80%E6%9C%89%E9%97%AE%E9%A2%98%E5%92%8C%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%E7%9A%84%E5%AE%8C%E6%95%B4%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="我的Java学习博客">
+<meta property="og:description" content="从项目搭建到第 2 步完成过程中遇到的所有问题和解决方案的完整笔记。 秒杀系统开发问题记录一、环境配置类问题1. Maven Wrapper 缺失文件报错： 1找不到文件 .mvn&#x2F;wrapper&#x2F;maven-wrapper.properties。将改用 Maven 捆绑版本。  原因：.mvn&#x2F;wrapper&#x2F; 目录为空，缺少 maven-wrapper.properties 配置文件。 解决：">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-09-06T12:15:25.000Z">
+<meta property="article:modified_time" content="2026-09-06T12:15:50.902Z">
+<meta property="article:author" content="woshiyigedacainiao">
+<meta property="article:tag" content="Java,SpringBoot,MySQL,Redis">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://woshiyigedacainiao.github.io/myblog/2026/09/06/%E4%BB%8E%E9%A1%B9%E7%9B%AE%E6%90%AD%E5%BB%BA%E5%88%B0%E7%AC%AC-2-%E6%AD%A5%E5%AE%8C%E6%88%90%E8%BF%87%E7%A8%8B%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E6%89%80%E6%9C%89%E9%97%AE%E9%A2%98%E5%92%8C%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%E7%9A%84%E5%AE%8C%E6%95%B4%E7%AC%94%E8%AE%B0/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://woshiyigedacainiao.github.io/myblog/2026/09/06/%E4%BB%8E%E9%A1%B9%E7%9B%AE%E6%90%AD%E5%BB%BA%E5%88%B0%E7%AC%AC-2-%E6%AD%A5%E5%AE%8C%E6%88%90%E8%BF%87%E7%A8%8B%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E6%89%80%E6%9C%89%E9%97%AE%E9%A2%98%E5%92%8C%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%E7%9A%84%E5%AE%8C%E6%95%B4%E7%AC%94%E8%AE%B0/","path":"2026/09/06/从项目搭建到第-2-步完成过程中遇到的所有问题和解决方案的完整笔记/","title":"从项目搭建到第 2 步完成过程中遇到的所有问题和解决方案的完整笔记"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>从项目搭建到第 2 步完成过程中遇到的所有问题和解决方案的完整笔记 | 我的Java学习博客</title>
+  
+
+
+
+
+
+
+
+
+  
+<script src="/myblog/js/utils.js" defer></script><script src="/myblog/js/motion.js" defer></script><script src="/myblog/js/sidebar.js" defer></script><script src="/myblog/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/myblog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-search popup-trigger" aria-label="搜索" role="button">
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/myblog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">我的Java学习博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-toggle" aria-label="切换导航栏" role="button">
+  </div>
+</div>
+
+
+
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%8E%E9%A1%B9%E7%9B%AE%E6%90%AD%E5%BB%BA%E5%88%B0%E7%AC%AC-2-%E6%AD%A5%E5%AE%8C%E6%88%90%E8%BF%87%E7%A8%8B%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E6%89%80%E6%9C%89%E9%97%AE%E9%A2%98%E5%92%8C%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%E7%9A%84%E5%AE%8C%E6%95%B4%E7%AC%94%E8%AE%B0%E3%80%82"><span class="nav-number">1.</span> <span class="nav-text">从项目搭建到第 2 步完成过程中遇到的所有问题和解决方案的完整笔记。</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%A7%92%E6%9D%80%E7%B3%BB%E7%BB%9F%E5%BC%80%E5%8F%91%E9%97%AE%E9%A2%98%E8%AE%B0%E5%BD%95"><span class="nav-number">2.</span> <span class="nav-text">秒杀系统开发问题记录</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE%E7%B1%BB%E9%97%AE%E9%A2%98"><span class="nav-number">2.1.</span> <span class="nav-text">一、环境配置类问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Maven-Wrapper-%E7%BC%BA%E5%A4%B1%E6%96%87%E4%BB%B6"><span class="nav-number">2.1.1.</span> <span class="nav-text">1. Maven Wrapper 缺失文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Redis-%E8%BF%9E%E6%8E%A5%E5%A4%B1%E8%B4%A5%EF%BC%88Connection-refused%EF%BC%89"><span class="nav-number">2.1.2.</span> <span class="nav-text">2. Redis 连接失败（Connection refused）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-Redis-%E5%AF%86%E7%A0%81%E9%85%8D%E7%BD%AE%E5%AF%BC%E8%87%B4-AUTH-%E9%94%99%E8%AF%AF"><span class="nav-number">2.1.3.</span> <span class="nav-text">3. Redis 密码配置导致 AUTH 错误</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-RabbitMQ-%E8%BF%9E%E6%8E%A5%E5%A4%B1%E8%B4%A5"><span class="nav-number">2.1.4.</span> <span class="nav-text">4. RabbitMQ 连接失败</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E4%BB%A3%E7%A0%81%E9%80%BB%E8%BE%91%E7%B1%BB%E9%97%AE%E9%A2%98"><span class="nav-number">2.2.</span> <span class="nav-text">二、代码逻辑类问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-ServiceImpl-%E6%B3%9B%E5%9E%8B%E5%86%99%E9%94%99"><span class="nav-number">2.2.1.</span> <span class="nav-text">5. ServiceImpl 泛型写错</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-%E4%B8%A4%E4%B8%AA-Controller-%E8%B7%AF%E5%BE%84%E5%86%B2%E7%AA%81"><span class="nav-number">2.2.2.</span> <span class="nav-text">6. 两个 Controller 路径冲突</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-VO-%E5%AD%97%E6%AE%B5%E7%B1%BB%E5%9E%8B%E9%94%99%E8%AF%AF"><span class="nav-number">2.2.3.</span> <span class="nav-text">7. VO 字段类型错误</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5%E5%BA%94%E8%AF%A5%E9%9D%A2%E5%90%91%E6%8E%A5%E5%8F%A3"><span class="nav-number">2.2.4.</span> <span class="nav-text">8. 依赖注入应该面向接口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9-VO-%E7%BB%84%E8%A3%85%E6%BC%8F%E8%AE%BE%E5%AD%97%E6%AE%B5"><span class="nav-number">2.2.5.</span> <span class="nav-text">9. VO 组装漏设字段</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-%E4%B8%A4%E6%AD%A5%E6%9F%A5%E8%AF%A2%E9%80%BB%E8%BE%91%E9%94%99%E8%AF%AF"><span class="nav-number">2.2.6.</span> <span class="nav-text">10. 两步查询逻辑错误</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-LambdaQueryWrapper-%E6%B3%9B%E5%9E%8B%E9%94%99%E8%AF%AF"><span class="nav-number">2.2.7.</span> <span class="nav-text">11. LambdaQueryWrapper 泛型错误</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#12-%E5%95%86%E5%93%81%E4%BF%A1%E6%81%AF%E9%A2%84%E7%83%AD%E5%AD%98%E4%BA%86%E6%97%A0%E6%95%88%E6%95%B0%E6%8D%AE"><span class="nav-number">2.2.8.</span> <span class="nav-text">12. 商品信息预热存了无效数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#13-Redis-key-%E7%94%A8%E9%94%99%E4%BA%86-ID"><span class="nav-number">2.2.9.</span> <span class="nav-text">13. Redis key 用错了 ID</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1%E7%B1%BB%E9%97%AE%E9%A2%98"><span class="nav-number">2.3.</span> <span class="nav-text">三、架构设计类问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#14-PostConstruct-vs-ApplicationRunner"><span class="nav-number">2.3.1.</span> <span class="nav-text">14. @PostConstruct vs ApplicationRunner</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81YAML-%E6%A0%BC%E5%BC%8F%E9%97%AE%E9%A2%98"><span class="nav-number">2.4.</span> <span class="nav-text">四、YAML 格式问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#15-YAML-%E6%A0%B9%E7%BA%A7%E5%88%AB%E5%A4%9A%E4%BD%99%E7%A9%BA%E6%A0%BC"><span class="nav-number">2.4.1.</span> <span class="nav-text">15. YAML 根级别多余空格</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E7%BB%8F%E9%AA%8C%E6%80%BB%E7%BB%93"><span class="nav-number">2.5.</span> <span class="nav-text">五、经验总结</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">woshiyigedacainiao</p>
+  <div class="site-description" itemprop="description">Java后端学习笔记、项目踩坑总结</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/myblog/archives/">
+          <span class="site-state-item-count">22</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://woshiyigedacainiao.github.io/myblog/2026/09/06/%E4%BB%8E%E9%A1%B9%E7%9B%AE%E6%90%AD%E5%BB%BA%E5%88%B0%E7%AC%AC-2-%E6%AD%A5%E5%AE%8C%E6%88%90%E8%BF%87%E7%A8%8B%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E6%89%80%E6%9C%89%E9%97%AE%E9%A2%98%E5%92%8C%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%E7%9A%84%E5%AE%8C%E6%95%B4%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/myblog/images/avatar.gif">
+      <meta itemprop="name" content="woshiyigedacainiao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我的Java学习博客">
+      <meta itemprop="description" content="Java后端学习笔记、项目踩坑总结">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="从项目搭建到第 2 步完成过程中遇到的所有问题和解决方案的完整笔记 | 我的Java学习博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          从项目搭建到第 2 步完成过程中遇到的所有问题和解决方案的完整笔记
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-09-06 20:15:25 / 修改时间：20:15:50" itemprop="dateCreated datePublished" datetime="2026-09-06T20:15:25+08:00">2026-09-06</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="从项目搭建到第-2-步完成过程中遇到的所有问题和解决方案的完整笔记。"><a href="#从项目搭建到第-2-步完成过程中遇到的所有问题和解决方案的完整笔记。" class="headerlink" title="从项目搭建到第 2 步完成过程中遇到的所有问题和解决方案的完整笔记。"></a>从项目搭建到第 2 步完成过程中遇到的所有问题和解决方案的完整笔记。</h1><hr>
+<h1 id="秒杀系统开发问题记录"><a href="#秒杀系统开发问题记录" class="headerlink" title="秒杀系统开发问题记录"></a>秒杀系统开发问题记录</h1><h2 id="一、环境配置类问题"><a href="#一、环境配置类问题" class="headerlink" title="一、环境配置类问题"></a>一、环境配置类问题</h2><h3 id="1-Maven-Wrapper-缺失文件"><a href="#1-Maven-Wrapper-缺失文件" class="headerlink" title="1. Maven Wrapper 缺失文件"></a>1. Maven Wrapper 缺失文件</h3><p><strong>报错</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">找不到文件 .mvn/wrapper/maven-wrapper.properties。将改用 Maven 捆绑版本。</span><br></pre></td></tr></table></figure>
+
+<p><strong>原因</strong>：<code>.mvn/wrapper/</code> 目录为空，缺少 <code>maven-wrapper.properties</code> 配置文件。</p>
+<p><strong>解决</strong>：在 <code>.mvn/wrapper/</code> 下创建 <code>maven-wrapper.properties</code>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">distributionUrl=https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.9/apache-maven-3.9.9-bin.zip</span><br><span class="line">wrapperUrl=https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.3.2/maven-wrapper-3.3.2.jar</span><br></pre></td></tr></table></figure>
+
+<p><strong>知识点</strong>：Maven Wrapper 是项目自带的 Maven 版本管理工具，让不同开发者使用相同的 Maven 版本。缺少配置文件不影响项目运行，IDEA 会使用自带的 Maven。</p>
+<hr>
+<h3 id="2-Redis-连接失败（Connection-refused）"><a href="#2-Redis-连接失败（Connection-refused）" class="headerlink" title="2. Redis 连接失败（Connection refused）"></a>2. Redis 连接失败（Connection refused）</h3><p><strong>报错</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Unable to connect to Redis server: 127.0.0.1/127.0.0.1:6379</span><br><span class="line">Connection refused: getsockopt</span><br></pre></td></tr></table></figure>
+
+<p><strong>原因</strong>：本地 Redis 服务未启动。</p>
+<p><strong>解决</strong>：启动本地 Redis 服务，确保 <code>127.0.0.1:6379</code> 可访问。</p>
+<p><strong>验证命令</strong>：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netstat <span class="literal">-ano</span> | findstr <span class="number">6379</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>知识点</strong>：Spring Boot 项目启动时会立即尝试连接 Redis（Redisson 自动配置），如果连不上会直接启动失败。开发时务必确保 Redis 已启动。</p>
+<hr>
+<h3 id="3-Redis-密码配置导致-AUTH-错误"><a href="#3-Redis-密码配置导致-AUTH-错误" class="headerlink" title="3. Redis 密码配置导致 AUTH 错误"></a>3. Redis 密码配置导致 AUTH 错误</h3><p><strong>报错</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ERR Client sent AUTH, but no password is set</span><br></pre></td></tr></table></figure>
+
+<p><strong>原因</strong>：<code>application.yaml</code> 中 <code>password:</code> 后面为空值：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">password:</span>    <span class="comment"># ← 空值，被解析为空字符串 &quot;&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>Redisson 检测到 password 字段存在（即使是空字符串），就会发送 AUTH 认证命令，而 Redis 没有设置密码，拒绝认证。</p>
+<p><strong>解决</strong>：<strong>彻底删除</strong> <code>password</code> 这一行，而不是留空。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">data:</span></span><br><span class="line">  <span class="attr">redis:</span></span><br><span class="line">    <span class="attr">host:</span> <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span></span><br><span class="line">    <span class="attr">port:</span> <span class="number">6379</span></span><br><span class="line">    <span class="comment"># password 行直接删除</span></span><br><span class="line">    <span class="attr">timeout:</span> <span class="string">5000ms</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>知识点</strong>：YAML 中 <code>key:</code> 空值 ≠ 没有这个字段。空值会被解析为 <code>null</code> 或空字符串，Redisson 仍会尝试认证。正确做法是整行删除。</p>
+<hr>
+<h3 id="4-RabbitMQ-连接失败"><a href="#4-RabbitMQ-连接失败" class="headerlink" title="4. RabbitMQ 连接失败"></a>4. RabbitMQ 连接失败</h3><p><strong>报错</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">AmqpConnectException: java.net.ConnectException: Connection refused</span><br></pre></td></tr></table></figure>
+
+<p><strong>原因</strong>：RabbitMQ 配置被注释掉，Spring Boot 默认连接 <code>localhost:5672</code>，而 RabbitMQ 实际在虚拟机 <code>192.168.100.128</code> 上。</p>
+<p><strong>解决</strong>：暂时排除 RabbitMQ 自动配置：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication(exclude = &#123;RabbitAutoConfiguration.class&#125;)</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>知识点</strong>：当某个中间件暂时不需要时，可以通过 <code>exclude</code> 排除其自动配置，避免启动时连接失败。后续需要时去掉 <code>exclude</code> 并取消配置注释即可。</p>
+<hr>
+<h2 id="二、代码逻辑类问题"><a href="#二、代码逻辑类问题" class="headerlink" title="二、代码逻辑类问题"></a>二、代码逻辑类问题</h2><h3 id="5-ServiceImpl-泛型写错"><a href="#5-ServiceImpl-泛型写错" class="headerlink" title="5. ServiceImpl 泛型写错"></a>5. ServiceImpl 泛型写错</h3><p><strong>错误代码</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MiaoshaGoodsServiceImpl</span></span><br><span class="line">    <span class="keyword">extends</span> <span class="title class_">ServiceImpl</span>&lt;GoodsMapper, MiaoshaGoods&gt;</span><br><span class="line">    <span class="keyword">implements</span> <span class="title class_">GoodsService</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>问题</strong>：</p>
+<ul>
+<li><code>GoodsMapper</code> 对应的是 <code>goods</code> 表，不是 <code>miaosha_goods</code> 表</li>
+<li>实现的接口应该是 <code>MiaoshaGoodsService</code> 而不是 <code>GoodsService</code></li>
+</ul>
+<p><strong>正确代码</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MiaoshaGoodsServiceImpl</span></span><br><span class="line">    <span class="keyword">extends</span> <span class="title class_">ServiceImpl</span>&lt;MiaoshaGoodsMapper, MiaoshaGoods&gt;</span><br><span class="line">    <span class="keyword">implements</span> <span class="title class_">MiaoshaGoodsService</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>知识点</strong>：<code>ServiceImpl&lt;XxxMapper, Xxx&gt;</code> 中，Mapper 和实体类必须对应同一张表。</p>
+<hr>
+<h3 id="6-两个-Controller-路径冲突"><a href="#6-两个-Controller-路径冲突" class="headerlink" title="6. 两个 Controller 路径冲突"></a>6. 两个 Controller 路径冲突</h3><p><strong>错误代码</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@RequestMapping(&quot;/goods&quot;)</span>  <span class="comment">// Controller A</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">GoodsController</span> &#123; ... &#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@RequestMapping(&quot;/goods&quot;)</span>  <span class="comment">// Controller B ← 冲突！</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MiaoshaGoodsController</span> &#123; ... &#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>解决</strong>：给不同的 Controller 设置不同的路径前缀。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RequestMapping(&quot;/query&quot;)</span>   <span class="comment">// 商品查询</span></span><br><span class="line"><span class="meta">@RequestMapping(&quot;/goods&quot;)</span>   <span class="comment">// 秒杀活动</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>知识点</strong>：Spring MVC 中多个 Controller 使用相同路径前缀会导致请求映射冲突，接口行为不可预测。</p>
+<hr>
+<h3 id="7-VO-字段类型错误"><a href="#7-VO-字段类型错误" class="headerlink" title="7. VO 字段类型错误"></a>7. VO 字段类型错误</h3><p><strong>错误代码</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> Double miaoshaPrice;    <span class="comment">// ❌ 金额用 Double</span></span><br><span class="line"><span class="keyword">private</span> DateTime startTime;     <span class="comment">// ❌ 用了 Hutool 的 DateTime</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>正确代码</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> BigDecimal miaoshaPrice;  <span class="comment">// ✅ 金额用 BigDecimal</span></span><br><span class="line"><span class="keyword">private</span> LocalDateTime startTime;  <span class="comment">// ✅ 和实体类保持一致</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>金额不能用 <code>Double/Float</code>，因为浮点数有精度问题（<code>0.1 + 0.2 = 0.30000000000000004</code>）</li>
+<li>VO 的时间类型应该和 Entity 保持一致，统一用 <code>LocalDateTime</code></li>
+</ul>
+<hr>
+<h3 id="8-依赖注入应该面向接口"><a href="#8-依赖注入应该面向接口" class="headerlink" title="8. 依赖注入应该面向接口"></a>8. 依赖注入应该面向接口</h3><p><strong>错误代码</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> GoodsServiceImpl goodsServiceimpl;  <span class="comment">// ❌ 注入实现类</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>正确代码</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> GoodsService goodsService;  <span class="comment">// ✅ 注入接口</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>知识点</strong>：面向接口编程是 Spring 的最佳实践。好处是：</p>
+<ul>
+<li>解耦：调用方不依赖具体实现</li>
+<li>灵活：更换实现时调用方不用改</li>
+<li>可测试：方便 Mock</li>
+</ul>
+<hr>
+<h3 id="9-VO-组装漏设字段"><a href="#9-VO-组装漏设字段" class="headerlink" title="9. VO 组装漏设字段"></a>9. VO 组装漏设字段</h3><p><strong>问题</strong>：VO 定义了 7 个字段，但只 set 了 4 个，导致 <code>id</code>、<code>miaoshaPrice</code>、<code>status</code> 为 null。</p>
+<p><strong>解决</strong>：确保所有字段都正确赋值。</p>
+<p><strong>知识点</strong>：VO（View Object）用于封装前端展示数据，所有需要的字段都必须手动 set。可以用 BeanUtils 或 Hutool 的 BeanUtil 简化拷贝。</p>
+<hr>
+<h3 id="10-两步查询逻辑错误"><a href="#10-两步查询逻辑错误" class="headerlink" title="10. 两步查询逻辑错误"></a>10. 两步查询逻辑错误</h3><p><strong>错误代码</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">MiaoshaGoodsVO</span> <span class="title function_">getMiaoshaGoodsDetail</span><span class="params">(Long id)</span> &#123;</span><br><span class="line">    <span class="type">Goods</span> <span class="variable">goods</span> <span class="operator">=</span> goodsService.queryGoodsById(id);  <span class="comment">// ❌ id 是活动ID，不是商品ID</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>正确逻辑</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">MiaoshaGoodsVO</span> <span class="title function_">getMiaoshaGoodsDetail</span><span class="params">(Long id)</span> &#123;</span><br><span class="line">    <span class="type">MiaoshaGoods</span> <span class="variable">ms</span> <span class="operator">=</span> getById(id);           <span class="comment">// 1. 先查秒杀活动</span></span><br><span class="line">    <span class="keyword">if</span> (ms == <span class="literal">null</span>) <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">MiaoshaException</span>(<span class="string">&quot;活动不存在&quot;</span>);</span><br><span class="line">    <span class="type">Goods</span> <span class="variable">goods</span> <span class="operator">=</span> goodsService.queryGoodsById(ms.getGoodsId());  <span class="comment">// 2. 再查商品</span></span><br><span class="line">    <span class="comment">// 3. 组装 VO</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>知识点</strong>：关联查询时，要搞清楚 ID 的含义。<code>miaosha_goods</code> 表的 ID 是活动 ID，需要通过 <code>goodsId</code> 字段才能找到对应的商品。</p>
+<hr>
+<h3 id="11-LambdaQueryWrapper-泛型错误"><a href="#11-LambdaQueryWrapper-泛型错误" class="headerlink" title="11. LambdaQueryWrapper 泛型错误"></a>11. LambdaQueryWrapper 泛型错误</h3><p><strong>错误代码</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">LambdaQueryWrapper</span>&lt;MiaoshaGoodsVO&gt; <span class="variable">wrp</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">LambdaQueryWrapper</span>&lt;&gt;();  <span class="comment">// ❌ 用了 VO</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>正确代码</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">LambdaQueryWrapper</span>&lt;MiaoshaGoods&gt; <span class="variable">wrp</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">LambdaQueryWrapper</span>&lt;&gt;();  <span class="comment">// ✅ 用实体类</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>知识点</strong>：<code>LambdaQueryWrapper</code> 的泛型必须是<strong>数据库实体类</strong>，因为 MyBatis-Plus 需要通过方法引用（如 <code>MiaoshaGoods::getStatus</code>）映射到数据库字段。</p>
+<hr>
+<h3 id="12-商品信息预热存了无效数据"><a href="#12-商品信息预热存了无效数据" class="headerlink" title="12. 商品信息预热存了无效数据"></a>12. 商品信息预热存了无效数据</h3><p><strong>错误代码</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">stringRedisTemplate.opsForValue().set(</span><br><span class="line">    RedisKeyConstant.GOODS_KEY + vO.getGoods().getId(),</span><br><span class="line">    vO.getGoods().toString()  <span class="comment">// ❌ 结果是 &quot;Goods@1a2b3c4d&quot;</span></span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<p><strong>正确代码</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">stringRedisTemplate.opsForValue().set(</span><br><span class="line">    RedisKeyConstant.GOODS_KEY + vO.getGoods().getId(),</span><br><span class="line">    JSONUtil.toJsonStr(vO.getGoods())  <span class="comment">// ✅ 存 JSON 字符串</span></span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<p><strong>知识点</strong>：Java 对象默认的 <code>toString()</code> 返回的是内存地址，不是数据。存 Redis 需要序列化为 JSON 字符串，可以用 Hutool 的 <code>JSONUtil.toJsonStr()</code>。</p>
+<hr>
+<h3 id="13-Redis-key-用错了-ID"><a href="#13-Redis-key-用错了-ID" class="headerlink" title="13. Redis key 用错了 ID"></a>13. Redis key 用错了 ID</h3><p><strong>错误代码</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 库存 key 用了商品 ID</span></span><br><span class="line">RedisKeyConstant.STOCK_KEY + vO.getGoods().getId()  <span class="comment">// ❌</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>正确代码</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 库存 key 应该用活动 ID</span></span><br><span class="line">RedisKeyConstant.STOCK_KEY + vO.getId()  <span class="comment">// ✅</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>知识点</strong>：一个商品可以有多次秒杀活动，库存是按<strong>活动维度</strong>管理的。key 设计必须区分清楚 ID 的含义。</p>
+<hr>
+<h2 id="三、架构设计类问题"><a href="#三、架构设计类问题" class="headerlink" title="三、架构设计类问题"></a>三、架构设计类问题</h2><h3 id="14-PostConstruct-vs-ApplicationRunner"><a href="#14-PostConstruct-vs-ApplicationRunner" class="headerlink" title="14. @PostConstruct vs ApplicationRunner"></a>14. <code>@PostConstruct</code> vs <code>ApplicationRunner</code></h3><p><strong>问题</strong>：用 <code>@PostConstruct</code> 做库存预热，在 Bean 初始化阶段执行，此时 Spring 上下文可能未完全就绪，有启动失败风险。</p>
+<p><strong>解决</strong>：改用 <code>ApplicationRunner</code>，在所有 Bean 就绪、应用完全启动后执行。</p>
+<table>
+<thead>
+<tr>
+<th>对比项</th>
+<th><code>@PostConstruct</code></th>
+<th><code>ApplicationRunner</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>执行时机</td>
+<td>Bean 创建时</td>
+<td>应用完全启动后</td>
+</tr>
+<tr>
+<td>依赖状态</td>
+<td>当前 Bean 依赖 OK</td>
+<td>所有依赖都 OK</td>
+</tr>
+<tr>
+<td>出错影响</td>
+<td>项目启动失败</td>
+<td>可捕获异常，不影响启动</td>
+</tr>
+<tr>
+<td>适合场景</td>
+<td>简单变量初始化</td>
+<td>需要多组件协作的任务</td>
+</tr>
+</tbody></table>
+<p><strong>知识点</strong>：Spring Boot 启动生命周期：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Bean 创建 → @PostConstruct → 所有 Bean 就绪 → ApplicationRunner.run() → 应用就绪</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="四、YAML-格式问题"><a href="#四、YAML-格式问题" class="headerlink" title="四、YAML 格式问题"></a>四、YAML 格式问题</h2><h3 id="15-YAML-根级别多余空格"><a href="#15-YAML-根级别多余空格" class="headerlink" title="15. YAML 根级别多余空格"></a>15. YAML 根级别多余空格</h3><p><strong>错误</strong>：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">server:</span>      <span class="comment"># ← 前面有空格</span></span><br><span class="line">  <span class="attr">port:</span> <span class="number">8080</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>正确</strong>：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">server:</span>        <span class="comment"># ← 顶格写</span></span><br><span class="line">  <span class="attr">port:</span> <span class="number">8080</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>知识点</strong>：YAML 对缩进极其敏感，根级别不能有任何前导空格。</p>
+<hr>
+<h2 id="五、经验总结"><a href="#五、经验总结" class="headerlink" title="五、经验总结"></a>五、经验总结</h2><table>
+<thead>
+<tr>
+<th>类别</th>
+<th>经验</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>配置</strong></td>
+<td>YAML 空值 ≠ 没有字段，不要的配置整行删除</td>
+</tr>
+<tr>
+<td><strong>配置</strong></td>
+<td>中间件暂时不用时，用 <code>exclude</code> 排除自动配置</td>
+</tr>
+<tr>
+<td><strong>编码</strong></td>
+<td>金额必须用 <code>BigDecimal</code>，不能用 <code>Double/Float</code></td>
+</tr>
+<tr>
+<td><strong>编码</strong></td>
+<td>面向接口编程，注入接口而非实现类</td>
+</tr>
+<tr>
+<td><strong>编码</strong></td>
+<td>对象存 Redis 要序列化为 JSON，不能直接 <code>toString()</code></td>
+</tr>
+<tr>
+<td><strong>设计</strong></td>
+<td>Redis key 设计：<code>业务:模块:标识</code>，用冒号分隔</td>
+</tr>
+<tr>
+<td><strong>设计</strong></td>
+<td><code>ServiceImpl&lt;Mapper, Entity&gt;</code> 泛型必须对应同一张表</td>
+</tr>
+<tr>
+<td><strong>设计</strong></td>
+<td><code>@PostConstruct</code> 适合简单初始化，复杂任务用 <code>ApplicationRunner</code></td>
+</tr>
+<tr>
+<td><strong>排查</strong></td>
+<td>查不到数据时，先检查查询条件和数据库数据是否匹配</td>
+</tr>
+<tr>
+<td><strong>排查</strong></td>
+<td>连接失败先看服务是否启动，再看配置是否正确</td>
+</tr>
+</tbody></table>
+<hr>
+<p>这份笔记涵盖了你从搭建到第 2 步完成遇到的所有问题。建议保存下来，后面开发时遇到类似问题可以回来参考 📝</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/myblog/2026/09/06/%E7%A7%92%E6%9D%80%E6%A0%B8%E5%BF%83%E6%B5%81%E7%A8%8B/" rel="prev" title="秒杀核心流程">
+                  <i class="fa fa-angle-left"></i> 秒杀核心流程
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/myblog/2026/09/06/%E7%A7%92%E6%9D%80%E7%B3%BB%E7%BB%9F%E6%8A%80%E6%9C%AF%E7%BB%8F%E9%AA%8C%E7%AC%94%E8%AE%B0/" rel="next" title="秒杀系统技术经验笔记">
+                  秒杀系统技术经验笔记 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">woshiyigedacainiao</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

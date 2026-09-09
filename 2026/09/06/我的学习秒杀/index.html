@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/myblog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/myblog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/myblog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/myblog/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/myblog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css" integrity="sha256-4Lad8m4ZWW1Lgb9+sMVLYEfnIh7BjV1NQMEe79Pviks=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"woshiyigedacainiao.github.io","root":"/myblog/","images":"/myblog/images","scheme":"Muse","darkmode":true,"version":"8.29.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/myblog/js/config.js" defer></script>
+
+    <meta name="description" content="我的学习秒杀 一、系统整体架构图1234567891011121314151617graph TB    A[&quot;用户浏览器&#x2F;APP&quot;] --&gt; B[&quot;Nginx &#x2F; 网关层&quot;]    B --&gt; C[&quot;Sentinel 限流&#x2F;防刷&quot;]    C --&gt; D[&quot;Spring Boot 秒杀服务&quot;]">
+<meta property="og:type" content="article">
+<meta property="og:title" content="我的学习秒杀">
+<meta property="og:url" content="https://woshiyigedacainiao.github.io/myblog/2026/09/06/%E6%88%91%E7%9A%84%E5%AD%A6%E4%B9%A0%E7%A7%92%E6%9D%80/index.html">
+<meta property="og:site_name" content="我的Java学习博客">
+<meta property="og:description" content="我的学习秒杀 一、系统整体架构图1234567891011121314151617graph TB    A[&quot;用户浏览器&#x2F;APP&quot;] --&gt; B[&quot;Nginx &#x2F; 网关层&quot;]    B --&gt; C[&quot;Sentinel 限流&#x2F;防刷&quot;]    C --&gt; D[&quot;Spring Boot 秒杀服务&quot;]">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-09-06T12:08:33.000Z">
+<meta property="article:modified_time" content="2026-09-06T12:09:00.764Z">
+<meta property="article:author" content="woshiyigedacainiao">
+<meta property="article:tag" content="Java,SpringBoot,MySQL,Redis">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://woshiyigedacainiao.github.io/myblog/2026/09/06/%E6%88%91%E7%9A%84%E5%AD%A6%E4%B9%A0%E7%A7%92%E6%9D%80/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://woshiyigedacainiao.github.io/myblog/2026/09/06/%E6%88%91%E7%9A%84%E5%AD%A6%E4%B9%A0%E7%A7%92%E6%9D%80/","path":"2026/09/06/我的学习秒杀/","title":"我的学习秒杀"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>我的学习秒杀 | 我的Java学习博客</title>
+  
+
+
+
+
+
+
+
+
+  
+<script src="/myblog/js/utils.js" defer></script><script src="/myblog/js/motion.js" defer></script><script src="/myblog/js/sidebar.js" defer></script><script src="/myblog/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/myblog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-search popup-trigger" aria-label="搜索" role="button">
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/myblog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">我的Java学习博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-toggle" aria-label="切换导航栏" role="button">
+  </div>
+</div>
+
+
+
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%88%91%E7%9A%84%E5%AD%A6%E4%B9%A0%E7%A7%92%E6%9D%80"><span class="nav-number">1.</span> <span class="nav-text">我的学习秒杀</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E7%B3%BB%E7%BB%9F%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84%E5%9B%BE"><span class="nav-number">1.1.</span> <span class="nav-text">一、系统整体架构图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E6%A0%B8%E5%BF%83%E6%B5%81%E7%A8%8B%EF%BC%88%E5%85%A8%E9%93%BE%E8%B7%AF%E6%97%B6%E5%BA%8F%EF%BC%89"><span class="nav-number">1.2.</span> <span class="nav-text">二、核心流程（全链路时序）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%98%B6%E6%AE%B5-1%EF%BC%9A%E7%A7%92%E6%9D%80%E5%BC%80%E5%A7%8B%E5%89%8D-%E2%80%94%E2%80%94-%E5%BA%93%E5%AD%98%E9%A2%84%E7%83%AD"><span class="nav-number">1.2.1.</span> <span class="nav-text">阶段 1：秒杀开始前 —— 库存预热</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%98%B6%E6%AE%B5-2%EF%BC%9A%E7%94%A8%E6%88%B7%E8%AF%B7%E6%B1%82%E7%A7%92%E6%9D%80-%E2%80%94%E2%80%94-%E6%A0%B8%E5%BF%83%E4%B8%BB%E6%B5%81%E7%A8%8B"><span class="nav-number">1.2.2.</span> <span class="nav-text">阶段 2：用户请求秒杀 —— 核心主流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%98%B6%E6%AE%B5-3%EF%BC%9A%E5%BC%82%E6%AD%A5%E4%B8%8B%E5%8D%95-%E2%80%94%E2%80%94-%E6%B6%88%E8%B4%B9%E8%80%85%E5%A4%84%E7%90%86"><span class="nav-number">1.2.3.</span> <span class="nav-text">阶段 3：异步下单 —— 消费者处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%98%B6%E6%AE%B5-4%EF%BC%9A%E8%AE%A2%E5%8D%95%E8%B6%85%E6%97%B6%E5%8F%96%E6%B6%88-%E2%80%94%E2%80%94-%E5%BB%B6%E8%BF%9F%E9%98%9F%E5%88%97"><span class="nav-number">1.2.4.</span> <span class="nav-text">阶段 4：订单超时取消 —— 延迟队列</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E6%A8%A1%E5%9D%97%E6%8B%86%E5%88%86%EF%BC%88%E4%BD%A0%E8%A6%81%E5%86%99%E7%9A%84%E4%BB%A3%E7%A0%81%E7%BB%93%E6%9E%84%EF%BC%89"><span class="nav-number">1.3.</span> <span class="nav-text">三、模块拆分（你要写的代码结构）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E6%8A%80%E6%9C%AF%E9%80%89%E5%9E%8B%E4%B8%8E%E7%9F%A5%E8%AF%86%E7%82%B9%E5%AF%B9%E5%BA%94"><span class="nav-number">1.4.</span> <span class="nav-text">四、技术选型与知识点对应</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E5%BC%80%E5%8F%91%E9%A1%BA%E5%BA%8F%E5%BB%BA%E8%AE%AE%EF%BC%88%E7%94%B1%E7%AE%80%E5%88%B0%E9%9A%BE%EF%BC%89"><span class="nav-number">1.5.</span> <span class="nav-text">五、开发顺序建议（由简到难）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AD%E3%80%81%E4%B8%80%E5%BC%A0%E5%9B%BE%E6%80%BB%E7%BB%93%E6%95%B0%E6%8D%AE%E6%B5%81%E5%90%91"><span class="nav-number">1.6.</span> <span class="nav-text">六、一张图总结数据流向</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">woshiyigedacainiao</p>
+  <div class="site-description" itemprop="description">Java后端学习笔记、项目踩坑总结</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/myblog/archives/">
+          <span class="site-state-item-count">22</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://woshiyigedacainiao.github.io/myblog/2026/09/06/%E6%88%91%E7%9A%84%E5%AD%A6%E4%B9%A0%E7%A7%92%E6%9D%80/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/myblog/images/avatar.gif">
+      <meta itemprop="name" content="woshiyigedacainiao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我的Java学习博客">
+      <meta itemprop="description" content="Java后端学习笔记、项目踩坑总结">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="我的学习秒杀 | 我的Java学习博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          我的学习秒杀
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-09-06 20:08:33 / 修改时间：20:09:00" itemprop="dateCreated datePublished" datetime="2026-09-06T20:08:33+08:00">2026-09-06</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="我的学习秒杀"><a href="#我的学习秒杀" class="headerlink" title="我的学习秒杀"></a>我的学习秒杀</h1><hr>
+<h2 id="一、系统整体架构图"><a href="#一、系统整体架构图" class="headerlink" title="一、系统整体架构图"></a>一、系统整体架构图</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">graph TB</span><br><span class="line">    A[&quot;用户浏览器/APP&quot;] --&gt; B[&quot;Nginx / 网关层&quot;]</span><br><span class="line">    B --&gt; C[&quot;Sentinel 限流/防刷&quot;]</span><br><span class="line">    C --&gt; D[&quot;Spring Boot 秒杀服务&quot;]</span><br><span class="line"></span><br><span class="line">    D --&gt; E[&quot;Redisson 分布式锁&quot;]</span><br><span class="line">    D --&gt; F[&quot;Redis 预减库存 Lua脚本&quot;]</span><br><span class="line">    D --&gt; G[&quot;RabbitMQ 消息队列&quot;]</span><br><span class="line">    D --&gt; H[&quot;MySQL 数据库&quot;]</span><br><span class="line"></span><br><span class="line">    G --&gt; I[&quot;订单消费者&quot;]</span><br><span class="line">    I --&gt; H</span><br><span class="line">    I --&gt; F</span><br><span class="line"></span><br><span class="line">    J[&quot;延迟队列 RabbitMQ&quot;] --&gt; K[&quot;超时取消消费者&quot;]</span><br><span class="line">    K --&gt; H</span><br><span class="line">    K --&gt; F</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="二、核心流程（全链路时序）"><a href="#二、核心流程（全链路时序）" class="headerlink" title="二、核心流程（全链路时序）"></a>二、核心流程（全链路时序）</h2><h3 id="阶段-1：秒杀开始前-——-库存预热"><a href="#阶段-1：秒杀开始前-——-库存预热" class="headerlink" title="阶段 1：秒杀开始前 —— 库存预热"></a>阶段 1：秒杀开始前 —— 库存预热</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">graph LR</span><br><span class="line">    A[&quot;管理员配置秒杀活动&quot;] --&gt; B[&quot;MySQL 写入 miaosha_goods&quot;]</span><br><span class="line">    B --&gt; C[&quot;活动开始前 N 分钟&quot;]</span><br><span class="line">    C --&gt; D[&quot;定时任务/手动触发&quot;]</span><br><span class="line">    D --&gt; E[&quot;将库存加载到 Redis&quot;]</span><br><span class="line">    E --&gt; F[&quot;Redis key: miaosha:stock:&#123;id&#125; = 100&quot;]</span><br></pre></td></tr></table></figure>
+
+<p><strong>要点：</strong></p>
+<ul>
+<li>库存数据提前从 MySQL 同步到 Redis</li>
+<li>Redis 用 <strong>String 类型</strong> 存储剩余库存，方便 Lua 脚本原子操作</li>
+<li>同时缓存商品信息，减少 DB 查询</li>
+</ul>
+<hr>
+<h3 id="阶段-2：用户请求秒杀-——-核心主流程"><a href="#阶段-2：用户请求秒杀-——-核心主流程" class="headerlink" title="阶段 2：用户请求秒杀 —— 核心主流程"></a>阶段 2：用户请求秒杀 —— 核心主流程</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">graph TB</span><br><span class="line">    A[&quot;用户点击秒杀&quot;] --&gt; B&#123;&quot;接口防刷校验&quot;&#125;</span><br><span class="line">    B --&gt;|&quot;频率超限&quot;| C[&quot;拒绝：请求过于频繁&quot;]</span><br><span class="line">    B --&gt;|&quot;通过&quot;| D&#123;&quot;Sentinel 限流&quot;&#125;</span><br><span class="line">    D --&gt;|&quot;触发限流&quot;| E[&quot;拒绝：系统繁忙&quot;]</span><br><span class="line">    D --&gt;|&quot;通过&quot;| F&#123;&quot;Redisson 获取分布式锁&quot;&#125;</span><br><span class="line">    F --&gt;|&quot;获取失败&quot;| G[&quot;拒绝：排队中，请稍后&quot;]</span><br><span class="line">    F --&gt;|&quot;获取成功&quot;| H&#123;&quot;Redis 判断库存 &gt; 0?&quot;&#125;</span><br><span class="line">    H --&gt;|&quot;库存不足&quot;| I[&quot;返回：已售罄&quot;]</span><br><span class="line">    H --&gt;|&quot;有库存&quot;| J[&quot;Lua 脚本原子预减库存&quot;]</span><br><span class="line">    J --&gt; K&#123;&quot;预减成功?&quot;&#125;</span><br><span class="line">    K --&gt;|&quot;失败（库存不足）&quot;| L[&quot;返回：已售罄&quot;]</span><br><span class="line">    K --&gt;|&quot;成功&quot;| M[&quot;发送消息到 RabbitMQ&quot;]</span><br><span class="line">    M --&gt; N[&quot;返回：排队中，请稍后查询&quot;]</span><br><span class="line">    N --&gt; O[&quot;释放 Redisson 锁&quot;]</span><br></pre></td></tr></table></figure>
+
+<p><strong>为什么要这个顺序？</strong></p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>目的</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>① 接口防刷</td>
+<td>挡住恶意刷接口的请求，保护后面所有资源</td>
+</tr>
+<tr>
+<td>② Sentinel 限流</td>
+<td>系统级保护，控制总 QPS</td>
+</tr>
+<tr>
+<td>③ Redisson 分布式锁</td>
+<td>保证同一时刻只有一个线程执行库存判断+扣减</td>
+</tr>
+<tr>
+<td>④ Redis Lua 预减库存</td>
+<td>原子操作，高并发下不会超卖，且速度极快</td>
+</tr>
+<tr>
+<td>⑤ 发送 MQ 消息</td>
+<td>异步削峰，快速返回用户，后端慢慢处理</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="阶段-3：异步下单-——-消费者处理"><a href="#阶段-3：异步下单-——-消费者处理" class="headerlink" title="阶段 3：异步下单 —— 消费者处理"></a>阶段 3：异步下单 —— 消费者处理</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">graph TB</span><br><span class="line">    A[&quot;RabbitMQ 消费者收到消息&quot;] --&gt; B&#123;&quot;幂等性检查：是否已下过单?&quot;&#125;</span><br><span class="line">    B --&gt;|&quot;已下单&quot;| C[&quot;丢弃消息&quot;]</span><br><span class="line">    B --&gt;|&quot;未下单&quot;| D[&quot;MySQL 扣减库存&quot;]</span><br><span class="line">    D --&gt; E&#123;&quot;stock &gt; 0 兜底校验&quot;&#125;</span><br><span class="line">    E --&gt;|&quot;失败&quot;| F[&quot;库存不足，回滚 Redis 库存&quot;]</span><br><span class="line">    E --&gt;|&quot;成功&quot;| G[&quot;创建秒杀订单 status=0 待支付&quot;]</span><br><span class="line">    G --&gt; H[&quot;发送延迟消息到 RabbitMQ&quot;]</span><br><span class="line">    H --&gt; I[&quot;30分钟后检查订单是否支付&quot;]</span><br></pre></td></tr></table></figure>
+
+<p><strong>要点：</strong></p>
+<ul>
+<li><strong>幂等性</strong>：通过 <code>uk_user_goods</code> 唯一索引 + 业务层判断，防止重复消费</li>
+<li><strong>DB 兜底</strong>：<code>UPDATE ... WHERE stock &gt; 0</code>，最后一道防线</li>
+<li><strong>延迟消息</strong>：订单创建后立即发送一个 30 分钟的延迟消息</li>
+</ul>
+<hr>
+<h3 id="阶段-4：订单超时取消-——-延迟队列"><a href="#阶段-4：订单超时取消-——-延迟队列" class="headerlink" title="阶段 4：订单超时取消 —— 延迟队列"></a>阶段 4：订单超时取消 —— 延迟队列</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">graph TB</span><br><span class="line">    A[&quot;延迟队列到期&quot;] --&gt; B[&quot;消费者收到订单号&quot;]</span><br><span class="line">    B --&gt; C&#123;&quot;查询订单状态&quot;&#125;</span><br><span class="line">    C --&gt;|&quot;已支付&quot;| D[&quot;忽略，不做处理&quot;]</span><br><span class="line">    C --&gt;|&quot;待支付&quot;| E[&quot;取消订单 status=2&quot;]</span><br><span class="line">    E --&gt; F[&quot;回滚 Redis 库存 +1&quot;]</span><br><span class="line">    E --&gt; G[&quot;回滚 MySQL 库存 +1&quot;]</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="三、模块拆分（你要写的代码结构）"><a href="#三、模块拆分（你要写的代码结构）" class="headerlink" title="三、模块拆分（你要写的代码结构）"></a>三、模块拆分（你要写的代码结构）</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line">com.heima.miaosha</span><br><span class="line">├── config/                     # 配置类</span><br><span class="line">│   ├── RedisConfig.java            # Redis 序列化配置</span><br><span class="line">│   ├── RedissonConfig.java         # Redisson 客户端配置</span><br><span class="line">│   ├── RabbitMQConfig.java         # 交换机、队列、绑定关系</span><br><span class="line">│   └── SentinelConfig.java         # Sentinel 限流规则配置</span><br><span class="line">│</span><br><span class="line">├── controller/                 # 接口层</span><br><span class="line">│   ├── MiaoshaController.java      # 秒杀核心接口</span><br><span class="line">│   ├── OrderController.java        # 订单查询/支付接口</span><br><span class="line">│   └── GoodsController.java        # 商品/活动查询接口</span><br><span class="line">│</span><br><span class="line">├── service/                    # 业务层</span><br><span class="line">│   ├── MiaoshaService.java         # 秒杀核心业务</span><br><span class="line">│   ├── OrderService.java           # 订单业务</span><br><span class="line">│   ├── GoodsService.java           # 商品业务</span><br><span class="line">│   └── impl/</span><br><span class="line">│       ├── MiaoshaServiceImpl.java</span><br><span class="line">│       ├── OrderServiceImpl.java</span><br><span class="line">│       └── GoodsServiceImpl.java</span><br><span class="line">│</span><br><span class="line">├── consumer/                   # MQ 消费者</span><br><span class="line">│   ├── OrderConsumer.java          # 异步下单消费者</span><br><span class="line">│   └── OrderTimeoutConsumer.java   # 延迟队列超时取消消费者</span><br><span class="line">│</span><br><span class="line">├── task/                       # 定时任务</span><br><span class="line">│   └── StockWarmUpTask.java        # 库存预热任务</span><br><span class="line">│</span><br><span class="line">├── entity/                     # 实体类</span><br><span class="line">│   ├── MiaoshaUser.java</span><br><span class="line">│   ├── Goods.java</span><br><span class="line">│   ├── MiaoshaGoods.java</span><br><span class="line">│   └── MiaoshaOrder.java</span><br><span class="line">│</span><br><span class="line">├── mapper/                     # MyBatis Mapper</span><br><span class="line">│   ├── MiaoshaUserMapper.java</span><br><span class="line">│   ├── GoodsMapper.java</span><br><span class="line">│   ├── MiaoshaGoodsMapper.java</span><br><span class="line">│   └── MiaoshaOrderMapper.java</span><br><span class="line">│</span><br><span class="line">├── dto/                        # 数据传输对象</span><br><span class="line">│   ├── MiaoshaRequest.java         # 秒杀请求参数</span><br><span class="line">│   └── OrderResult.java            # 下单结果</span><br><span class="line">│</span><br><span class="line">├── enums/                      # 枚举</span><br><span class="line">│   ├── OrderStatus.java            # 订单状态枚举</span><br><span class="line">│   └── ActivityStatus.java         # 活动状态枚举</span><br><span class="line">│</span><br><span class="line">├── exception/                  # 异常处理</span><br><span class="line">│   ├── MiaoshaException.java</span><br><span class="line">│   └── GlobalExceptionHandler.java</span><br><span class="line">│</span><br><span class="line">├── interceptor/                # 拦截器</span><br><span class="line">│   └── RepeatSubmitInterceptor.java  # 接口防刷拦截器</span><br><span class="line">│</span><br><span class="line">└── util/                       # 工具类</span><br><span class="line">    ├── LuaScriptUtil.java          # Lua 脚本管理</span><br><span class="line">    └── OrderNoGenerator.java       # 订单号生成器</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="四、技术选型与知识点对应"><a href="#四、技术选型与知识点对应" class="headerlink" title="四、技术选型与知识点对应"></a>四、技术选型与知识点对应</h2><table>
+<thead>
+<tr>
+<th>你的学习目标</th>
+<th>对应实现位置</th>
+<th>核心技术</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Redis 预减库存</strong></td>
+<td><code>MiaoshaServiceImpl</code></td>
+<td>Redis Lua 脚本原子扣减</td>
+</tr>
+<tr>
+<td><strong>Redisson 分布式锁</strong></td>
+<td><code>MiaoshaServiceImpl</code></td>
+<td><code>RLock lock = redisson.getLock(&quot;miaosha:&quot; + id)</code></td>
+</tr>
+<tr>
+<td><strong>异步下单削峰</strong></td>
+<td><code>RabbitMQConfig</code> + <code>OrderConsumer</code></td>
+<td>直连队列 &#x2F; Topic 交换机</td>
+</tr>
+<tr>
+<td><strong>订单超时取消</strong></td>
+<td><code>RabbitMQConfig</code> + <code>OrderTimeoutConsumer</code></td>
+<td>死信队列（DLX）实现延迟消息</td>
+</tr>
+<tr>
+<td><strong>接口防刷</strong></td>
+<td><code>RepeatSubmitInterceptor</code></td>
+<td>Redis + 注解，限制同一用户 N 秒内只能请求一次</td>
+</tr>
+<tr>
+<td><strong>Sentinel 限流</strong></td>
+<td><code>SentinelConfig</code> + Controller</td>
+<td><code>@SentinelResource</code> 注解或代码配置</td>
+</tr>
+<tr>
+<td><strong>DB 兜底防超卖</strong></td>
+<td><code>MiaoshaGoodsMapper.xml</code></td>
+<td><code>UPDATE ... WHERE stock &gt; 0</code></td>
+</tr>
+<tr>
+<td><strong>幂等性保证</strong></td>
+<td><code>OrderConsumer</code></td>
+<td>唯一索引 + 业务判断</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="五、开发顺序建议（由简到难）"><a href="#五、开发顺序建议（由简到难）" class="headerlink" title="五、开发顺序建议（由简到难）"></a>五、开发顺序建议（由简到难）</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">第1步：基础搭建</span><br><span class="line">  ├── 引入依赖（MyBatis-Plus, Redis, Redisson, RabbitMQ, Sentinel）</span><br><span class="line">  ├── 配置 application.yaml</span><br><span class="line">  ├── 生成实体类 + Mapper + 基础 CRUD</span><br><span class="line">  └── 验证能正常连库、连 Redis、连 MQ</span><br><span class="line"></span><br><span class="line">第2步：商品模块</span><br><span class="line">  ├── 查询商品列表</span><br><span class="line">  ├── 查询秒杀活动详情</span><br><span class="line">  └── 库存预热（将库存加载到 Redis）</span><br><span class="line"></span><br><span class="line">第3步：秒杀核心流程 ⭐</span><br><span class="line">  ├── 编写 Lua 脚本（预减库存）</span><br><span class="line">  ├── Redisson 分布式锁</span><br><span class="line">  ├── 发送 MQ 消息</span><br><span class="line">  └── 消费者异步创建订单</span><br><span class="line"></span><br><span class="line">第4步：订单模块</span><br><span class="line">  ├── 查询订单状态（前端轮询）</span><br><span class="line">  ├── 模拟支付接口</span><br><span class="line">  └── 延迟队列超时取消</span><br><span class="line"></span><br><span class="line">第5步：防护层</span><br><span class="line">  ├── 接口防刷拦截器</span><br><span class="line">  ├── Sentinel 限流规则</span><br><span class="line">  └── 全局异常处理</span><br><span class="line"></span><br><span class="line">第6步：压测与优化</span><br><span class="line">  ├── JMeter 压测</span><br><span class="line">  ├── 观察是否超卖</span><br><span class="line">  └── 调优参数（锁超时、MQ 并发等）</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="六、一张图总结数据流向"><a href="#六、一张图总结数据流向" class="headerlink" title="六、一张图总结数据流向"></a>六、一张图总结数据流向</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">用户请求</span><br><span class="line">  │</span><br><span class="line">  ▼</span><br><span class="line">[防刷拦截器] ──失败──→ 返回&quot;请求过于频繁&quot;</span><br><span class="line">  │ 成功</span><br><span class="line">  ▼</span><br><span class="line">[Sentinel限流] ──限流──→ 返回&quot;系统繁忙&quot;</span><br><span class="line">  │ 通过</span><br><span class="line">  ▼</span><br><span class="line">[Redisson分布式锁] ──失败──→ 返回&quot;排队中&quot;</span><br><span class="line">  │ 获取成功</span><br><span class="line">  ▼</span><br><span class="line">[Redis Lua预减库存] ──失败──→ 返回&quot;已售罄&quot;</span><br><span class="line">  │ 成功</span><br><span class="line">  ▼</span><br><span class="line">[RabbitMQ发送消息] ──→ 立即返回&quot;排队中，请稍后查询&quot;</span><br><span class="line">  │</span><br><span class="line">  ▼ (异步)</span><br><span class="line">[MQ消费者]</span><br><span class="line">  ├── 幂等校验（防重复）</span><br><span class="line">  ├── MySQL扣库存（WHERE stock &gt; 0 兜底）</span><br><span class="line">  ├── 创建订单（status=0）</span><br><span class="line">  └── 发送延迟消息（30分钟）</span><br><span class="line">        │</span><br><span class="line">        ▼ (30分钟后)</span><br><span class="line">  [延迟队列消费者]</span><br><span class="line">    ├── 订单已支付 → 忽略</span><br><span class="line">    └── 订单未支付 → 取消订单 + 回滚库存（Redis + MySQL）</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p>这就是整个秒杀系统的<strong>完整架构蓝图</strong>。每一步你都知道自己在整个链路中的位置。</p>
+<p>数据库预热遇到的问题</p>
+<p><a href="%E6%88%91%E7%9A%84%E5%AD%A6%E4%B9%A0%E7%A7%92%E6%9D%80/%E4%BB%8E%E9%A1%B9%E7%9B%AE%E6%90%AD%E5%BB%BA%E5%88%B0%E7%AC%AC%202%20%E6%AD%A5%E5%AE%8C%E6%88%90%E8%BF%87%E7%A8%8B%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E6%89%80%E6%9C%89%E9%97%AE%E9%A2%98%E5%92%8C%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%E7%9A%84%E5%AE%8C%E6%95%B4%E7%AC%94%E8%AE%B0%E3%80%82%203a0e8e68f4d280c49610f38a779970d4.md">从项目搭建到第 2 步完成过程中遇到的所有问题和解决方案的完整笔记。</a></p>
+<p><a href="%E6%88%91%E7%9A%84%E5%AD%A6%E4%B9%A0%E7%A7%92%E6%9D%80/%F0%9F%93%9D%20%E7%AC%AC%203%20%E6%AD%A5%EF%BC%9A%E7%A7%92%E6%9D%80%E6%A0%B8%E5%BF%83%E6%B5%81%E7%A8%8B%20-%20%E9%97%AE%E9%A2%98%E4%B8%8E%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%E7%AC%94%E8%AE%B0%203a1e8e68f4d280cc9e1ed0d13a94389e.md">📝 第 3 步：秒杀核心流程 - 问题与解决方案笔记</a></p>
+<p><a href="%E6%88%91%E7%9A%84%E5%AD%A6%E4%B9%A0%E7%A7%92%E6%9D%80/%F0%9F%93%96%20%E7%AC%AC%E4%B8%89%E6%AD%A5RabbitMQ%20%E6%B6%88%E6%81%AF%E6%A8%A1%E5%9D%97%E5%BC%80%E5%8F%91%E7%BB%8F%E9%AA%8C%E7%AC%94%E8%AE%B0%203a3e8e68f4d2800da85ac08b6b8d6293.md">📖 第三步RabbitMQ 消息模块开发经验笔记</a></p>
+<p><a href="%E6%88%91%E7%9A%84%E5%AD%A6%E4%B9%A0%E7%A7%92%E6%9D%80/%E7%A7%92%E6%9D%80%E7%B3%BB%E7%BB%9F%E6%8A%80%E6%9C%AF%E7%BB%8F%E9%AA%8C%E7%AC%94%E8%AE%B0%203a5e8e68f4d280a4872afd47afb7f002.md">秒杀系统技术经验笔记</a></p>
+<p><a href="%E6%88%91%E7%9A%84%E5%AD%A6%E4%B9%A0%E7%A7%92%E6%9D%80/Sentinel%E9%99%90%E6%B5%81%203a5e8e68f4d28038a2ded1067bbaa87a.md">Sentinel限流 </a></p>
+<p><a href="%E6%88%91%E7%9A%84%E5%AD%A6%E4%B9%A0%E7%A7%92%E6%9D%80/%E4%BC%98%E5%8C%96%E4%B8%8B%E5%8D%95%E5%92%8C%E6%94%AF%E4%BB%98%203a7e8e68f4d2809a9b66cfc1dfeb16ce.md">优化下单和支付</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/myblog/2026/09/06/%E9%BB%91%E9%A9%AC%E7%82%B9%E8%AF%84/" rel="prev" title="黑马点评">
+                  <i class="fa fa-angle-left"></i> 黑马点评
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/myblog/2026/09/06/Sentinel%E9%99%90%E6%B5%81/" rel="next" title="Sentinel限流">
+                  Sentinel限流 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">woshiyigedacainiao</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

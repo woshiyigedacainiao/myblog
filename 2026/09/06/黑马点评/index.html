@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/myblog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/myblog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/myblog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/myblog/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/myblog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css" integrity="sha256-4Lad8m4ZWW1Lgb9+sMVLYEfnIh7BjV1NQMEe79Pviks=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"woshiyigedacainiao.github.io","root":"/myblog/","images":"/myblog/images","scheme":"Muse","darkmode":true,"version":"8.29.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/myblog/js/config.js" defer></script>
+
+    <meta name="description" content="黑马点评优化秒杀：把检查库存是否充足、一人一单的工作放在redis中，把下单对数据库的操作用另外的线程异步执行 📋 Redis解决库存超卖和一人一单的完整逻辑一、核心问题在高并发秒杀场景下，需要解决两个关键问题：  库存超卖：多个用户同时抢购，可能导致库存扣减为负数 一人一单：同一个用户不能重复购买同一张秒杀券   二、解决方案演进从你的代码中可以看到两种方案： 方案1：基于数据库 + 分布式锁">
+<meta property="og:type" content="article">
+<meta property="og:title" content="黑马点评">
+<meta property="og:url" content="https://woshiyigedacainiao.github.io/myblog/2026/09/06/%E9%BB%91%E9%A9%AC%E7%82%B9%E8%AF%84/index.html">
+<meta property="og:site_name" content="我的Java学习博客">
+<meta property="og:description" content="黑马点评优化秒杀：把检查库存是否充足、一人一单的工作放在redis中，把下单对数据库的操作用另外的线程异步执行 📋 Redis解决库存超卖和一人一单的完整逻辑一、核心问题在高并发秒杀场景下，需要解决两个关键问题：  库存超卖：多个用户同时抢购，可能导致库存扣减为负数 一人一单：同一个用户不能重复购买同一张秒杀券   二、解决方案演进从你的代码中可以看到两种方案： 方案1：基于数据库 + 分布式锁">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-09-06T11:56:33.000Z">
+<meta property="article:modified_time" content="2026-09-06T11:58:18.886Z">
+<meta property="article:author" content="woshiyigedacainiao">
+<meta property="article:tag" content="Java,SpringBoot,MySQL,Redis">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://woshiyigedacainiao.github.io/myblog/2026/09/06/%E9%BB%91%E9%A9%AC%E7%82%B9%E8%AF%84/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://woshiyigedacainiao.github.io/myblog/2026/09/06/%E9%BB%91%E9%A9%AC%E7%82%B9%E8%AF%84/","path":"2026/09/06/黑马点评/","title":"黑马点评"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>黑马点评 | 我的Java学习博客</title>
+  
+
+
+
+
+
+
+
+
+  
+<script src="/myblog/js/utils.js" defer></script><script src="/myblog/js/motion.js" defer></script><script src="/myblog/js/sidebar.js" defer></script><script src="/myblog/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/myblog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-search popup-trigger" aria-label="搜索" role="button">
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/myblog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">我的Java学习博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-toggle" aria-label="切换导航栏" role="button">
+  </div>
+</div>
+
+
+
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%BB%91%E9%A9%AC%E7%82%B9%E8%AF%84"><span class="nav-number">1.</span> <span class="nav-text">黑马点评</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%93%8B-Redis%E8%A7%A3%E5%86%B3%E5%BA%93%E5%AD%98%E8%B6%85%E5%8D%96%E5%92%8C%E4%B8%80%E4%BA%BA%E4%B8%80%E5%8D%95%E7%9A%84%E5%AE%8C%E6%95%B4%E9%80%BB%E8%BE%91"><span class="nav-number">2.</span> <span class="nav-text">📋 Redis解决库存超卖和一人一单的完整逻辑</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E6%A0%B8%E5%BF%83%E9%97%AE%E9%A2%98"><span class="nav-number">2.1.</span> <span class="nav-text">一、核心问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%E6%BC%94%E8%BF%9B"><span class="nav-number">2.2.</span> <span class="nav-text">二、解决方案演进</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E6%A1%881%EF%BC%9A%E5%9F%BA%E4%BA%8E%E6%95%B0%E6%8D%AE%E5%BA%93-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%EF%BC%88%E6%B3%A8%E9%87%8A%E6%8E%89%E7%9A%84%E4%BB%A3%E7%A0%81%EF%BC%8C%E7%AC%AC89-129%E8%A1%8C%EF%BC%89"><span class="nav-number">2.3.</span> <span class="nav-text">方案1：基于数据库 + 分布式锁（注释掉的代码，第89-129行）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E6%A1%882%EF%BC%9A%E5%9F%BA%E4%BA%8ERedis-Lua%E8%84%9A%E6%9C%AC%EF%BC%88%E5%BD%93%E5%89%8D%E4%BD%BF%E7%94%A8%E7%9A%84%E6%96%B9%E6%A1%88%EF%BC%8C%E7%AC%AC60-85%E8%A1%8C%EF%BC%89-%E2%9C%85"><span class="nav-number">2.4.</span> <span class="nav-text">方案2：基于Redis + Lua脚本（当前使用的方案，第60-85行） ✅</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%89%E3%80%81Lua%E8%84%9A%E6%9C%AC%E7%9A%84%E6%A0%B8%E5%BF%83%E9%80%BB%E8%BE%91%EF%BC%88%E9%87%8D%E7%82%B9%EF%BC%89"><span class="nav-number">2.5.</span> <span class="nav-text">三、Lua脚本的核心逻辑（重点）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E7%94%A8Lua%E8%84%9A%E6%9C%AC%EF%BC%9F"><span class="nav-number">2.6.</span> <span class="nav-text">四、为什么用Lua脚本？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E9%94%AE%E4%BC%98%E5%8A%BF%EF%BC%9A%E5%8E%9F%E5%AD%90%E6%80%A7-%E2%9A%A1"><span class="nav-number">2.7.</span> <span class="nav-text">关键优势：原子性 ⚡</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%94%E3%80%81Redis%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1"><span class="nav-number">2.8.</span> <span class="nav-text">五、Redis数据结构设计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%AD%E3%80%81%E5%AE%8C%E6%95%B4%E4%B8%9A%E5%8A%A1%E6%B5%81%E7%A8%8B"><span class="nav-number">2.9.</span> <span class="nav-text">六、完整业务流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%83%E3%80%81Java%E5%B1%82%E8%B0%83%E7%94%A8%E9%80%BB%E8%BE%91"><span class="nav-number">2.10.</span> <span class="nav-text">七、Java层调用逻辑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%AB%E3%80%81%E5%85%A8%E5%B1%80ID%E7%94%9F%E6%88%90%E5%99%A8%EF%BC%88RedisIdWorker%EF%BC%89"><span class="nav-number">2.11.</span> <span class="nav-text">八、全局ID生成器（RedisIdWorker）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B9%9D%E3%80%81%E5%85%B3%E9%94%AE%E8%A6%81%E7%82%B9%E6%80%BB%E7%BB%93"><span class="nav-number">2.12.</span> <span class="nav-text">九、关键要点总结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8D%81%E3%80%81%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="nav-number">2.13.</span> <span class="nav-text">十、注意事项</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%F0%9F%8E%AF-Redis%E4%B8%ADSet%E9%9B%86%E5%90%88%E7%9A%84%E5%88%9B%E5%BB%BA%E6%97%B6%E6%9C%BA"><span class="nav-number">2.14.</span> <span class="nav-text">🎯 Redis中Set集合的创建时机</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E4%B8%A4%E4%B8%AARedis-Key%E7%9A%84%E5%88%9B%E5%BB%BA%E6%97%B6%E6%9C%BA%E4%B8%8D%E5%90%8C"><span class="nav-number">2.14.1.</span> <span class="nav-text">一、两个Redis Key的创建时机不同</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-String%E7%B1%BB%E5%9E%8B%E7%9A%84%E5%BA%93%E5%AD%98Key%EF%BC%88seckill-stock-voucherId-%EF%BC%89"><span class="nav-number">2.14.2.</span> <span class="nav-text">1. String类型的库存Key（seckill:stock:{voucherId}）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Set%E7%B1%BB%E5%9E%8B%E7%9A%84%E8%AE%A2%E5%8D%95Key%EF%BC%88seckill-order-voucherId-%EF%BC%89"><span class="nav-number">2.14.3.</span> <span class="nav-text">2. Set类型的订单Key（seckill:order:{voucherId}）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E5%AE%8C%E6%95%B4%E6%B5%81%E7%A8%8B%E5%9B%BE%E8%A7%A3"><span class="nav-number">2.14.4.</span> <span class="nav-text">二、完整流程图解</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88Set%E4%B8%8D%E9%9C%80%E8%A6%81%E9%A2%84%E5%85%88%E5%88%9B%E5%BB%BA%EF%BC%9F"><span class="nav-number">2.14.5.</span> <span class="nav-text">三、为什么Set不需要预先创建？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E4%B8%A4%E7%A7%8DKey%E7%9A%84%E5%AF%B9%E6%AF%94%E6%80%BB%E7%BB%93"><span class="nav-number">2.14.6.</span> <span class="nav-text">四、两种Key的对比总结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="nav-number">2.14.7.</span> <span class="nav-text">五、核心要点</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%F0%9F%94%8D-%E7%AC%AC%E4%B8%80%E4%B8%AA%E7%94%A8%E6%88%B7%E6%89%A7%E8%A1%8C-SISMEMBER-%E7%9A%84%E8%A1%8C%E4%B8%BA"><span class="nav-number">3.</span> <span class="nav-text">🔍 第一个用户执行 SISMEMBER 的行为</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E3%80%81SISMEMBER-%E5%AF%B9%E4%B8%8D%E5%AD%98%E5%9C%A8%E7%9A%84Key%E7%9A%84%E5%A4%84%E7%90%86"><span class="nav-number">3.1.</span> <span class="nav-text">一、SISMEMBER 对不存在的Key的处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8C%E3%80%81Lua%E8%84%9A%E6%9C%AC%E7%9A%84%E5%AE%8C%E6%95%B4%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B%EF%BC%88%E7%AC%AC%E4%B8%80%E4%B8%AA%E7%94%A8%E6%88%B7%EF%BC%89"><span class="nav-number">3.2.</span> <span class="nav-text">二、Lua脚本的完整执行流程（第一个用户）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%89%E3%80%81SISMEMBER-%E5%91%BD%E4%BB%A4%E8%AF%A6%E8%A7%A3"><span class="nav-number">3.3.</span> <span class="nav-text">三、SISMEMBER 命令详解</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%99%E6%A0%B7%E8%AE%BE%E8%AE%A1%E6%98%AF%E5%AE%89%E5%85%A8%E7%9A%84%EF%BC%9F"><span class="nav-number">3.4.</span> <span class="nav-text">四、为什么这样设计是安全的？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E5%AF%B9%E6%AF%94%EF%BC%9A%E4%B8%8D%E5%90%8C%E5%91%BD%E4%BB%A4%E5%AF%B9%E4%B8%8D%E5%AD%98%E5%9C%A8Key%E7%9A%84%E5%A4%84%E7%90%86"><span class="nav-number">3.5.</span> <span class="nav-text">五、对比：不同命令对不存在Key的处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%AD%E3%80%81%E5%AE%9E%E9%99%85%E6%89%A7%E8%A1%8C%E7%A4%BA%E4%BE%8B"><span class="nav-number">3.6.</span> <span class="nav-text">六、实际执行示例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%83%E3%80%81%E6%80%BB%E7%BB%93"><span class="nav-number">3.7.</span> <span class="nav-text">七、总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E-Redis-Stream-%E7%9A%84%E5%BC%82%E6%AD%A5%E7%A7%92%E6%9D%80%E4%B8%8B%E5%8D%95%E6%B5%81%E7%A8%8B%EF%BC%9A"><span class="nav-number">4.</span> <span class="nav-text">基于 Redis Stream 的异步秒杀下单流程：</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%F0%9F%93%8B-%E5%AE%8C%E6%95%B4%E5%BC%82%E6%AD%A5%E4%B8%8B%E5%8D%95%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="nav-number">4.1.</span> <span class="nav-text">📋 完整异步下单流程图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%F0%9F%94%8D-%E8%AF%A6%E7%BB%86%E6%B5%81%E7%A8%8B%E5%88%86%E8%A7%A3"><span class="nav-number">4.2.</span> <span class="nav-text">🔍 详细流程分解</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AC%AC%E4%B8%80%E9%98%B6%E6%AE%B5%EF%BC%9A%E5%90%8C%E6%AD%A5%E5%A4%84%E7%90%86%EF%BC%88%E5%BF%AB%E9%80%9F%E5%93%8D%E5%BA%94%EF%BC%89"><span class="nav-number">4.2.1.</span> <span class="nav-text">第一阶段：同步处理（快速响应）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1%EF%B8%8F%E2%83%A3-%E7%94%A8%E6%88%B7%E5%8F%91%E8%B5%B7%E8%AF%B7%E6%B1%82"><span class="nav-number">4.2.2.</span> <span class="nav-text">1️⃣ 用户发起请求</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2%EF%B8%8F%E2%83%A3-%E7%94%9F%E6%88%90%E5%85%A8%E5%B1%80%E5%94%AF%E4%B8%80%E8%AE%A2%E5%8D%95ID"><span class="nav-number">4.2.3.</span> <span class="nav-text">2️⃣ 生成全局唯一订单ID</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3%EF%B8%8F%E2%83%A3-%E6%89%A7%E8%A1%8C-Lua-%E8%84%9A%E6%9C%AC%E8%BF%9B%E8%A1%8C%E5%8E%9F%E5%AD%90%E6%80%A7%E6%A0%A1%E9%AA%8C%E5%92%8C%E9%A2%84%E5%A4%84%E7%90%86"><span class="nav-number">4.2.4.</span> <span class="nav-text">3️⃣ 执行 Lua 脚本进行原子性校验和预处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4%EF%B8%8F%E2%83%A3-%E7%AB%8B%E5%8D%B3%E8%BF%94%E5%9B%9E%E7%BB%93%E6%9E%9C%E7%BB%99%E7%94%A8%E6%88%B7"><span class="nav-number">4.2.5.</span> <span class="nav-text">4️⃣ 立即返回结果给用户</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AC%AC%E4%BA%8C%E9%98%B6%E6%AE%B5%EF%BC%9A%E5%BC%82%E6%AD%A5%E5%A4%84%E7%90%86%EF%BC%88%E5%90%8E%E5%8F%B0%E6%B6%88%E8%B4%B9%EF%BC%89"><span class="nav-number">4.2.6.</span> <span class="nav-text">第二阶段：异步处理（后台消费）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5%EF%B8%8F%E2%83%A3-%E5%88%9D%E5%A7%8B%E5%8C%96%E6%B6%88%E8%B4%B9%E8%80%85%E7%BB%84%E5%92%8C%E5%90%AF%E5%8A%A8%E6%B6%88%E8%B4%B9%E7%BA%BF%E7%A8%8B"><span class="nav-number">4.2.7.</span> <span class="nav-text">5️⃣ 初始化消费者组和启动消费线程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6%EF%B8%8F%E2%83%A3-%E9%98%BB%E5%A1%9E%E8%AF%BB%E5%8F%96-Stream-%E6%B6%88%E6%81%AF"><span class="nav-number">4.2.8.</span> <span class="nav-text">6️⃣ 阻塞读取 Stream 消息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7%EF%B8%8F%E2%83%A3-%E8%A7%A3%E6%9E%90%E6%B6%88%E6%81%AF%E5%B9%B6%E6%9E%84%E5%BB%BA%E8%AE%A2%E5%8D%95%E5%AF%B9%E8%B1%A1"><span class="nav-number">4.2.9.</span> <span class="nav-text">7️⃣ 解析消息并构建订单对象</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8%EF%B8%8F%E2%83%A3-%E4%B8%80%E4%BA%BA%E4%B8%80%E5%8D%95%E6%A0%A1%E9%AA%8C-%E4%BF%9D%E5%AD%98%E8%AE%A2%E5%8D%95%E5%88%B0%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="nav-number">4.2.10.</span> <span class="nav-text">8️⃣ 一人一单校验 + 保存订单到数据库</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9%EF%B8%8F%E2%83%A3-%E6%89%8B%E5%8A%A8%E7%A1%AE%E8%AE%A4%E6%B6%88%E6%81%AF%EF%BC%88ACK%EF%BC%89"><span class="nav-number">4.2.11.</span> <span class="nav-text">9️⃣ 手动确认消息（ACK）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AC%AC%E4%B8%89%E9%98%B6%E6%AE%B5%EF%BC%9A%E5%BC%82%E5%B8%B8%E9%87%8D%E8%AF%95%E6%9C%BA%E5%88%B6%EF%BC%88Pending-%E5%A4%84%E7%90%86%EF%BC%89"><span class="nav-number">4.2.12.</span> <span class="nav-text">第三阶段：异常重试机制（Pending 处理）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%F0%9F%94%9F-%E6%8D%95%E8%8E%B7%E5%BC%82%E5%B8%B8%E5%B9%B6%E5%A4%84%E7%90%86-Pending-%E6%B6%88%E6%81%AF"><span class="nav-number">4.2.13.</span> <span class="nav-text">🔟 捕获异常并处理 Pending 消息</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%F0%9F%8E%AF-%E6%A0%B8%E5%BF%83%E8%AE%BE%E8%AE%A1%E8%A6%81%E7%82%B9"><span class="nav-number">4.3.</span> <span class="nav-text">🎯 核心设计要点</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%9C%85-%E4%BC%98%E5%8A%BF"><span class="nav-number">4.3.1.</span> <span class="nav-text">✅ 优势</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%9A%A0%EF%B8%8F-%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="nav-number">4.3.2.</span> <span class="nav-text">⚠️ 注意事项</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%F0%9F%93%8A-%E6%95%B0%E6%8D%AE%E6%B5%81%E8%BD%AC%E7%A4%BA%E6%84%8F"><span class="nav-number">4.4.</span> <span class="nav-text">📊 数据流转示意</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">woshiyigedacainiao</p>
+  <div class="site-description" itemprop="description">Java后端学习笔记、项目踩坑总结</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/myblog/archives/">
+          <span class="site-state-item-count">22</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://woshiyigedacainiao.github.io/myblog/2026/09/06/%E9%BB%91%E9%A9%AC%E7%82%B9%E8%AF%84/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/myblog/images/avatar.gif">
+      <meta itemprop="name" content="woshiyigedacainiao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我的Java学习博客">
+      <meta itemprop="description" content="Java后端学习笔记、项目踩坑总结">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="黑马点评 | 我的Java学习博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          黑马点评
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-09-06 19:56:33 / 修改时间：19:58:18" itemprop="dateCreated datePublished" datetime="2026-09-06T19:56:33+08:00">2026-09-06</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="黑马点评"><a href="#黑马点评" class="headerlink" title="黑马点评"></a>黑马点评</h1><p>优化秒杀：把检查库存是否充足、一人一单的工作放在redis中，把下单对数据库的操作用另外的线程异步执行</p>
+<h1 id="📋-Redis解决库存超卖和一人一单的完整逻辑"><a href="#📋-Redis解决库存超卖和一人一单的完整逻辑" class="headerlink" title="📋 Redis解决库存超卖和一人一单的完整逻辑"></a>📋 Redis解决库存超卖和一人一单的完整逻辑</h1><h3 id="一、核心问题"><a href="#一、核心问题" class="headerlink" title="一、核心问题"></a>一、核心问题</h3><p>在高并发秒杀场景下，需要解决两个关键问题：</p>
+<ol>
+<li><strong>库存超卖</strong>：多个用户同时抢购，可能导致库存扣减为负数</li>
+<li><strong>一人一单</strong>：同一个用户不能重复购买同一张秒杀券</li>
+</ol>
+<hr>
+<h3 id="二、解决方案演进"><a href="#二、解决方案演进" class="headerlink" title="二、解决方案演进"></a>二、解决方案演进</h3><p>从你的代码中可以看到<strong>两种方案</strong>：</p>
+<h3 id="方案1：基于数据库-分布式锁（注释掉的代码，第89-129行）"><a href="#方案1：基于数据库-分布式锁（注释掉的代码，第89-129行）" class="headerlink" title="方案1：基于数据库 + 分布式锁（注释掉的代码，第89-129行）"></a><strong>方案1：基于数据库 + 分布式锁（注释掉的代码，第89-129行）</strong></h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">流程：</span><br><span class="line">查询优惠券 → 判断时间 → 判断库存 → 加Redisson锁 → 创建订单</span><br></pre></td></tr></table></figure>
+
+<p><strong>存在的问题：</strong></p>
+<ul>
+<li>❌ 先查数据库再判断，高并发下有性能瓶颈</li>
+<li>❌ 每个用户都要加锁，串行执行，吞吐量低</li>
+<li>❌ 一人一单在数据库层面判断，仍然要访问数据库</li>
+</ul>
+<hr>
+<h3 id="方案2：基于Redis-Lua脚本（当前使用的方案，第60-85行）-✅"><a href="#方案2：基于Redis-Lua脚本（当前使用的方案，第60-85行）-✅" class="headerlink" title="方案2：基于Redis + Lua脚本（当前使用的方案，第60-85行） ✅"></a><strong>方案2：基于Redis + Lua脚本（当前使用的方案，第60-85行）</strong> ✅</h3><p>这是更优的解决方案，核心在于<strong>seckill.lua脚本</strong>。</p>
+<hr>
+<h3 id="三、Lua脚本的核心逻辑（重点）"><a href="#三、Lua脚本的核心逻辑（重点）" class="headerlink" title="三、Lua脚本的核心逻辑（重点）"></a>三、Lua脚本的核心逻辑（重点）</h3><p>让我详细解释 <code>seckill.lua</code> 的执行流程：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 1. 接收参数</span></span><br><span class="line"><span class="keyword">local</span> voucherId = ARGV[<span class="number">1</span>]  <span class="comment">-- 优惠券ID</span></span><br><span class="line"><span class="keyword">local</span> userId = ARGV[<span class="number">2</span>]     <span class="comment">-- 用户ID</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 2. 定义Redis Key</span></span><br><span class="line"><span class="keyword">local</span> stockkey = <span class="string">&#x27;seckill:stock:&#x27;</span> .. voucherId    <span class="comment">-- 库存Key</span></span><br><span class="line"><span class="keyword">local</span> orderkey = <span class="string">&#x27;seckill:order:&#x27;</span> .. voucherId    <span class="comment">-- 订单Key（Set集合）</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 3. 业务逻辑（原子性执行）</span></span><br><span class="line"><span class="comment">-- 3.1 判断库存是否充足</span></span><br><span class="line"><span class="keyword">if</span> (<span class="built_in">tonumber</span>(redis.call(<span class="string">&#x27;get&#x27;</span>, stockkey)) &lt;= <span class="number">0</span>) <span class="keyword">then</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>  <span class="comment">-- 库存不足</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 3.2 判断用户是否已下单（一人一单）</span></span><br><span class="line"><span class="keyword">if</span> (redis.call(<span class="string">&#x27;sismember&#x27;</span>, orderkey, userId)) <span class="keyword">then</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">2</span>  <span class="comment">-- 重复下单</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 3.3 扣减库存</span></span><br><span class="line">redis.call(<span class="string">&#x27;incrby&#x27;</span>, stockkey, <span class="number">-1</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 3.4 记录用户已购买</span></span><br><span class="line">redis.call(<span class="string">&#x27;sadd&#x27;</span>, orderkey, userId)</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> <span class="number">0</span>  <span class="comment">-- 成功</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="四、为什么用Lua脚本？"><a href="#四、为什么用Lua脚本？" class="headerlink" title="四、为什么用Lua脚本？"></a>四、为什么用Lua脚本？</h3><h3 id="关键优势：原子性-⚡"><a href="#关键优势：原子性-⚡" class="headerlink" title="关键优势：原子性 ⚡"></a><strong>关键优势：原子性</strong> ⚡</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">传统方式（非原子操作）：</span><br><span class="line">请求1: GET stock → 判断 &gt; 0 → DECR stock  ❌ 中间可能被其他请求打断</span><br><span class="line">请求2: GET stock → 判断 &gt; 0 → DECR stock  ❌ 可能读到旧值</span><br><span class="line"></span><br><span class="line">Lua脚本（原子操作）：</span><br><span class="line">请求1: [GET → 判断 → DECR → SADD]  ✅ 一次性执行，不可打断</span><br><span class="line">请求2: [GET → 判断 → DECR → SADD]  ✅ 排队等待</span><br></pre></td></tr></table></figure>
+
+<p><strong>Lua脚本保证了三个操作的原子性：</strong></p>
+<ol>
+<li>查询库存</li>
+<li>扣减库存</li>
+<li>记录订单</li>
+</ol>
+<hr>
+<h3 id="五、Redis数据结构设计"><a href="#五、Redis数据结构设计" class="headerlink" title="五、Redis数据结构设计"></a>五、Redis数据结构设计</h3><table>
+<thead>
+<tr>
+<th>数据类型</th>
+<th>Key</th>
+<th>Value</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>String</td>
+<td><code>seckill:stock:{voucherId}</code></td>
+<td>库存数量（如：100）</td>
+<td>存储剩余库存</td>
+</tr>
+<tr>
+<td>Set</td>
+<td><code>seckill:order:{voucherId}</code></td>
+<td>{userId1, userId2, …}</td>
+<td>记录已购买用户</td>
+</tr>
+</tbody></table>
+<p><strong>为什么用Set存储订单？</strong></p>
+<ul>
+<li>✅ <code>SISMEMBER</code> 判断成员是否存在：O(1) 时间复杂度</li>
+<li>✅ <code>SADD</code> 自动去重，防止重复添加</li>
+<li>✅ 可以查询所有购买用户</li>
+</ul>
+<hr>
+<h3 id="六、完整业务流程"><a href="#六、完整业务流程" class="headerlink" title="六、完整业务流程"></a>六、完整业务流程</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">graph TD</span><br><span class="line">    A[用户发起秒杀请求] --&gt; B[执行Lua脚本]</span><br><span class="line">    B --&gt; C&#123;检查库存是否&gt;0&#125;</span><br><span class="line">    C --&gt;|否| D[返回1: 库存不足]</span><br><span class="line">    C --&gt;|是| E&#123;检查用户是否已购买&#125;</span><br><span class="line">    E --&gt;|是| F[返回2: 重复下单]</span><br><span class="line">    E --&gt;|否| G[扣减库存 stock-1]</span><br><span class="line">    G --&gt; H[记录用户到Set]</span><br><span class="line">    H --&gt; I[返回0: 成功]</span><br><span class="line">    I --&gt; J[生成订单ID]</span><br><span class="line">    J --&gt; K[异步创建数据库订单]</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="七、Java层调用逻辑"><a href="#七、Java层调用逻辑" class="headerlink" title="七、Java层调用逻辑"></a>七、Java层调用逻辑</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 1. 执行Lua脚本（原子操作）</span></span><br><span class="line"><span class="type">Long</span> <span class="variable">result</span> <span class="operator">=</span> stringRedisTemplate.execute(</span><br><span class="line">    SECKILL_SCRIPT,</span><br><span class="line">    Collections.emptyList(),</span><br><span class="line">    voucherId.toString(),  <span class="comment">// ARGV[1]</span></span><br><span class="line">    userId.toString()      <span class="comment">// ARGV[2]</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 判断结果</span></span><br><span class="line"><span class="keyword">if</span> (result == <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> Result.fail(<span class="string">&quot;库存不足&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">if</span> (result == <span class="number">2</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> Result.fail(<span class="string">&quot;不可以重复下单&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 3. 成功：生成订单ID并异步处理</span></span><br><span class="line"><span class="type">long</span> <span class="variable">orderId</span> <span class="operator">=</span> redisIdWorker.nextId(<span class="string">&quot;order:&quot;</span>);</span><br><span class="line"><span class="comment">// <span class="doctag">TODO:</span> 将订单信息放入阻塞队列，异步创建数据库订单</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="八、全局ID生成器（RedisIdWorker）"><a href="#八、全局ID生成器（RedisIdWorker）" class="headerlink" title="八、全局ID生成器（RedisIdWorker）"></a>八、全局ID生成器（RedisIdWorker）</h3><p>由于高并发下数据库自增ID性能差，使用Redis生成全局唯一ID：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ID组成：时间戳(32位) + 序列号(32位)</span></span><br><span class="line"><span class="type">long</span> <span class="variable">time</span> <span class="operator">=</span> 当前时间秒数 - 起始时间;</span><br><span class="line"><span class="type">long</span> <span class="variable">increment</span> <span class="operator">=</span> Redis自增序列号;</span><br><span class="line"><span class="keyword">return</span> (time &lt;&lt; <span class="number">32</span>) | increment;</span><br></pre></td></tr></table></figure>
+
+<p><strong>优势：</strong></p>
+<ul>
+<li>✅ 趋势递增，利于数据库索引</li>
+<li>✅ 分布式环境下唯一</li>
+<li>✅ 高性能（Redis单线程原子操作）</li>
+</ul>
+<hr>
+<h3 id="九、关键要点总结"><a href="#九、关键要点总结" class="headerlink" title="九、关键要点总结"></a>九、关键要点总结</h3><table>
+<thead>
+<tr>
+<th>要点</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>原子性保证</strong></td>
+<td>Lua脚本在Redis中原子执行，不会被中断</td>
+</tr>
+<tr>
+<td><strong>库存防超卖</strong></td>
+<td>先判断库存再扣减，都在Lua中完成</td>
+</tr>
+<tr>
+<td><strong>一人一单</strong></td>
+<td>用Set存储用户ID，SISMEMBER快速判断</td>
+</tr>
+<tr>
+<td><strong>高性能</strong></td>
+<td>所有判断在Redis内存中完成，不查数据库</td>
+</tr>
+<tr>
+<td><strong>异步落库</strong></td>
+<td>秒杀成功后异步创建订单，减轻数据库压力</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="十、注意事项"><a href="#十、注意事项" class="headerlink" title="十、注意事项"></a>十、注意事项</h3><p>⚠️ <strong>当前代码的问题（TODO部分）：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 第79行的TODO需要实现：</span></span><br><span class="line"><span class="comment">// 1. 创建阻塞队列（ArrayBlockingQueue）</span></span><br><span class="line"><span class="comment">// 2. 将订单信息封装后放入队列</span></span><br><span class="line"><span class="comment">// 3. 开启线程池异步消费队列，创建数据库订单</span></span><br></pre></td></tr></table></figure>
+
+<p>这样可以进一步解耦，提高秒杀接口的响应速度！</p>
+<hr>
+<p>这就是完整的Redis解决库存超卖和一人一单的逻辑。核心思想就是：<strong>用Lua脚本保证原子性，用Redis高性能特性抗住高并发，最后异步落库</strong>。有任何疑问欢迎继续提问！</p>
+<h2 id="🎯-Redis中Set集合的创建时机"><a href="#🎯-Redis中Set集合的创建时机" class="headerlink" title="🎯 Redis中Set集合的创建时机"></a>🎯 Redis中Set集合的创建时机</h2><h3 id="一、两个Redis-Key的创建时机不同"><a href="#一、两个Redis-Key的创建时机不同" class="headerlink" title="一、两个Redis Key的创建时机不同"></a>一、两个Redis Key的创建时机不同</h3><h3 id="1-String类型的库存Key（seckill-stock-voucherId-）"><a href="#1-String类型的库存Key（seckill-stock-voucherId-）" class="headerlink" title="1. String类型的库存Key（seckill:stock:{voucherId}）"></a><strong>1. String类型的库存Key（<code>seckill:stock:{voucherId}</code>）</strong></h3><p><strong>创建时机：</strong> 在<strong>添加秒杀券时</strong>创建</p>
+<p><strong>代码位置：</strong> <code>VoucherServiceImpl.java</code> 第57-58行</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="meta">@Transactional</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">void</span> <span class="title function_">addSeckillVoucher</span><span class="params">(Voucher voucher)</span> &#123;</span><br><span class="line">    <span class="comment">// 保存优惠券</span></span><br><span class="line">    save(voucher);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 保存秒杀信息</span></span><br><span class="line">    <span class="type">SeckillVoucher</span> <span class="variable">seckillVoucher</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">SeckillVoucher</span>();</span><br><span class="line">    seckillVoucher.setVoucherId(voucher.getId());</span><br><span class="line">    seckillVoucher.setStock(voucher.getStock());</span><br><span class="line">    seckillVoucher.setBeginTime(voucher.getBeginTime());</span><br><span class="line">    seckillVoucher.setEndTime(voucher.getEndTime());</span><br><span class="line">    seckillVoucherService.save(seckillVoucher);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ⭐ 关键：保存优惠券的库存到redis</span></span><br><span class="line">    stringRedisTemplate.opsForValue().set(</span><br><span class="line">        SECKILL_STOCK_KEY + voucher.getId(),  <span class="comment">// &quot;seckill:stock:&quot; + voucherId</span></span><br><span class="line">        voucher.getStock().toString()          <span class="comment">// 库存数量，如 &quot;100&quot;</span></span><br><span class="line">    );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>说明：</strong></p>
+<ul>
+<li>✅ 当管理员后台添加秒杀券时调用</li>
+<li>✅ 使用 <code>opsForValue().set()</code> 设置String类型</li>
+<li>✅ 初始值就是数据库中的库存数量</li>
+</ul>
+<hr>
+<h3 id="2-Set类型的订单Key（seckill-order-voucherId-）"><a href="#2-Set类型的订单Key（seckill-order-voucherId-）" class="headerlink" title="2. Set类型的订单Key（seckill:order:{voucherId}）"></a><strong>2. Set类型的订单Key（<code>seckill:order:{voucherId}</code>）</strong></h3><p><strong>创建时机：</strong> <strong>首次用户购买时自动创建</strong>（隐式创建）</p>
+<p><strong>代码位置：</strong> <code>seckill.lua</code> 第31行</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 3.4 下单（保存用户）</span></span><br><span class="line">redis.call(<span class="string">&#x27;sadd&#x27;</span>, orderkey, userId)</span><br></pre></td></tr></table></figure>
+
+<p><strong>说明：</strong></p>
+<ul>
+<li>✅ <strong>不需要显式创建</strong>，Redis会在第一次执行 <code>SADD</code> 命令时自动创建Set</li>
+<li>✅ 如果Key不存在，Redis会先创建一个空的Set，再添加元素</li>
+<li>✅ 后续用户购买时，直接向已存在的Set中添加userId</li>
+</ul>
+<hr>
+<h3 id="二、完整流程图解"><a href="#二、完整流程图解" class="headerlink" title="二、完整流程图解"></a>二、完整流程图解</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">graph TD</span><br><span class="line">    A[管理员添加秒杀券] --&gt; B[调用addSeckillVoucher方法]</span><br><span class="line">    B --&gt; C[保存券信息到数据库]</span><br><span class="line">    C --&gt; D[创建String Key:&lt;br/&gt;seckill:stock:voucherId&lt;br/&gt;值为库存数量]</span><br><span class="line">    D --&gt; E[等待用户抢购]</span><br><span class="line"></span><br><span class="line">    F[用户发起秒杀] --&gt; G[执行Lua脚本]</span><br><span class="line">    G --&gt; H&#123;检查seckill:order:voucherId&lt;br/&gt;是否存在?&#125;</span><br><span class="line">    H --&gt;|不存在| I[首次购买:&lt;br/&gt;SADD自动创建Set]</span><br><span class="line">    H --&gt;|已存在| J[直接SADD添加userId]</span><br><span class="line">    I --&gt; K[扣减库存&lt;br/&gt;记录订单]</span><br><span class="line">    J --&gt; K</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="三、为什么Set不需要预先创建？"><a href="#三、为什么Set不需要预先创建？" class="headerlink" title="三、为什么Set不需要预先创建？"></a>三、为什么Set不需要预先创建？</h3><p>这是Redis的特性：<strong>命令会自动创建不存在的Key</strong></p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>Key不存在时的行为</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>SADD key member</code></td>
+<td>自动创建空Set，然后添加member</td>
+</tr>
+<tr>
+<td><code>GET key</code></td>
+<td>返回nil</td>
+</tr>
+<tr>
+<td><code>INCR key</code></td>
+<td>自动创建并设为0，然后+1</td>
+</tr>
+</tbody></table>
+<p><strong>示例：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 第一次执行，Redis自动创建Set</span></span><br><span class="line">127.0.0.1:6379&gt; SADD seckill:order:1 10086</span><br><span class="line">(<span class="built_in">integer</span>) 1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看类型</span></span><br><span class="line">127.0.0.1:6379&gt; TYPE seckill:order:1</span><br><span class="line"><span class="built_in">set</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 第二次执行，直接添加到已有Set</span></span><br><span class="line">127.0.0.1:6379&gt; SADD seckill:order:1 10087</span><br><span class="line">(<span class="built_in">integer</span>) 1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看成员</span></span><br><span class="line">127.0.0.1:6379&gt; SMEMBERS seckill:order:1</span><br><span class="line">1) <span class="string">&quot;10086&quot;</span></span><br><span class="line">2) <span class="string">&quot;10087&quot;</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="四、两种Key的对比总结"><a href="#四、两种Key的对比总结" class="headerlink" title="四、两种Key的对比总结"></a>四、两种Key的对比总结</h3><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>库存Key (String)</th>
+<th>订单Key (Set)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Key格式</strong></td>
+<td><code>seckill:stock:{voucherId}</code></td>
+<td><code>seckill:order:{voucherId}</code></td>
+</tr>
+<tr>
+<td><strong>数据类型</strong></td>
+<td>String</td>
+<td>Set</td>
+</tr>
+<tr>
+<td><strong>创建时机</strong></td>
+<td>添加秒杀券时（主动创建）</td>
+<td>首次购买时（自动创建）</td>
+</tr>
+<tr>
+<td><strong>创建方式</strong></td>
+<td><code>opsForValue().set()</code></td>
+<td>Lua脚本中的 <code>SADD</code></td>
+</tr>
+<tr>
+<td><strong>初始值</strong></td>
+<td>库存数量（如100）</td>
+<td>空集 → 添加第一个userId</td>
+</tr>
+<tr>
+<td><strong>作用</strong></td>
+<td>存储剩余库存</td>
+<td>记录已购买用户ID</td>
+</tr>
+<tr>
+<td><strong>相关操作</strong></td>
+<td>GET、DECR</td>
+<td>SISMEMBER、SADD</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="五、核心要点"><a href="#五、核心要点" class="headerlink" title="五、核心要点"></a>五、核心要点</h3><p>✅ <strong>库存Key是预先创建的</strong>：在添加秒杀券时就初始化到Redis</p>
+<p>✅ <strong>订单Key是延迟创建的</strong>：第一个用户购买时才由 <code>SADD</code> 自动创建</p>
+<p>✅ <strong>这是Redis的优势</strong>：不需要手动判断Key是否存在，命令会自动处理</p>
+<p>✅ <strong>保证原子性</strong>：Lua脚本中判断和添加是原子操作，不会出错</p>
+<p>这就是Set集合的创建逻辑！简单说就是：<strong>不用你管，Redis自己会创建</strong> 😊</p>
+<p>好问题！让我详细解释第一个用户购买时，执行到 <code>SISMEMBER</code> 命令会发生什么。</p>
+<h1 id="🔍-第一个用户执行-SISMEMBER-的行为"><a href="#🔍-第一个用户执行-SISMEMBER-的行为" class="headerlink" title="🔍 第一个用户执行 SISMEMBER 的行为"></a>🔍 第一个用户执行 SISMEMBER 的行为</h1><h3 id="一、SISMEMBER-对不存在的Key的处理"><a href="#一、SISMEMBER-对不存在的Key的处理" class="headerlink" title="一、SISMEMBER 对不存在的Key的处理"></a>一、SISMEMBER 对不存在的Key的处理</h3><p>当第一个用户购买时，<code>seckill:order:{voucherId}</code> 这个Set <strong>还不存在</strong>，此时执行：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (redis.call(<span class="string">&#x27;sismember&#x27;</span>, orderkey, userId)) <span class="keyword">then</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">2</span>  <span class="comment">-- 重复下单</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Redis的行为：</strong></p>
+<ul>
+<li>✅ <strong>不会报错</strong></li>
+<li>✅ <strong>返回 0</strong>（表示成员不存在）</li>
+<li>✅ <strong>不会自动创建Key</strong>（这是SISMEMBER的特性）</li>
+</ul>
+<hr>
+<h3 id="二、Lua脚本的完整执行流程（第一个用户）"><a href="#二、Lua脚本的完整执行流程（第一个用户）" class="headerlink" title="二、Lua脚本的完整执行流程（第一个用户）"></a>二、Lua脚本的完整执行流程（第一个用户）</h3><p>让我用实际例子演示：</p>
+<p>假设：</p>
+<ul>
+<li><code>voucherId = 1</code></li>
+<li><code>userId = 10086</code></li>
+<li>库存 &#x3D; 100</li>
+</ul>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 第1步：定义Key</span></span><br><span class="line"><span class="keyword">local</span> stockkey = <span class="string">&#x27;seckill:stock:1&#x27;</span>      <span class="comment">-- 已存在，值为 &quot;100&quot;</span></span><br><span class="line"><span class="keyword">local</span> orderkey = <span class="string">&#x27;seckill:order:1&#x27;</span>      <span class="comment">-- ⚠️ 此时还不存在</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 第2步：判断库存</span></span><br><span class="line"><span class="keyword">if</span> (<span class="built_in">tonumber</span>(redis.call(<span class="string">&#x27;get&#x27;</span>, stockkey)) &lt;= <span class="number">0</span>) <span class="keyword">then</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"><span class="comment">-- ✅ 库存是100，通过检查</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 第3步：判断是否重复下单（第一个用户）</span></span><br><span class="line"><span class="keyword">if</span> (redis.call(<span class="string">&#x27;sismember&#x27;</span>, orderkey, <span class="number">10086</span>)) <span class="keyword">then</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">2</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"><span class="comment">-- ✅ orderkey不存在，SISMEMBER返回0</span></span><br><span class="line"><span class="comment">-- ✅ if(0) 条件为false，不进入return 2，继续执行</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 第4步：扣减库存</span></span><br><span class="line">redis.call(<span class="string">&#x27;incrby&#x27;</span>, stockkey, <span class="number">-1</span>)</span><br><span class="line"><span class="comment">-- ✅ stockkey的值从 &quot;100&quot; 变成 &quot;99&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 第5步：记录用户（⭐关键：这里才创建Set）</span></span><br><span class="line">redis.call(<span class="string">&#x27;sadd&#x27;</span>, orderkey, <span class="number">10086</span>)</span><br><span class="line"><span class="comment">-- ✅ orderkey不存在，Redis自动创建Set</span></span><br><span class="line"><span class="comment">-- ✅ 将10086添加到Set中</span></span><br><span class="line"><span class="comment">-- ✅ 现在 seckill:order:1 = &#123;10086&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 第6步：返回成功</span></span><br><span class="line"><span class="keyword">return</span> <span class="number">0</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="三、SISMEMBER-命令详解"><a href="#三、SISMEMBER-命令详解" class="headerlink" title="三、SISMEMBER 命令详解"></a>三、SISMEMBER 命令详解</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 场景1：Key不存在</span></span><br><span class="line">127.0.0.1:6379&gt; SISMEMBER seckill:order:1 10086</span><br><span class="line">(<span class="built_in">integer</span>) 0    <span class="comment"># 返回0，表示不存在</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 场景2：Key存在，但成员不在其中</span></span><br><span class="line">127.0.0.1:6379&gt; SADD seckill:order:1 10087</span><br><span class="line">(<span class="built_in">integer</span>) 1</span><br><span class="line">127.0.0.1:6379&gt; SISMEMBER seckill:order:1 10086</span><br><span class="line">(<span class="built_in">integer</span>) 0    <span class="comment"># 返回0，表示10086不在Set中</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 场景3：Key存在，成员也在其中</span></span><br><span class="line">127.0.0.1:6379&gt; SISMEMBER seckill:order:1 10087</span><br><span class="line">(<span class="built_in">integer</span>) 1    <span class="comment"># 返回1，表示10087在Set中</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>返回值规则：</strong></p>
+<ul>
+<li><code>1</code> &#x3D; 成员存在于Set中</li>
+<li><code>0</code> &#x3D; 成员不存在（包括Key不存在的情况）</li>
+</ul>
+<hr>
+<h3 id="四、为什么这样设计是安全的？"><a href="#四、为什么这样设计是安全的？" class="headerlink" title="四、为什么这样设计是安全的？"></a>四、为什么这样设计是安全的？</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">graph TD</span><br><span class="line">    A[第一个用户到来] --&gt; B&#123;orderkey存在吗?&#125;</span><br><span class="line">    B --&gt;|不存在| C[SISMEMBER返回0]</span><br><span class="line">    B --&gt;|存在| D&#123;userId在Set中吗?&#125;</span><br><span class="line">    D --&gt;|在| E[返回1 → 拒绝重复下单]</span><br><span class="line">    D --&gt;|不在| F[返回0 → 允许购买]</span><br><span class="line">    C --&gt; F</span><br><span class="line">    F --&gt; G[SADD添加userId&lt;br/&gt;自动创建Set]</span><br><span class="line">    G --&gt; H[秒杀成功]</span><br><span class="line">    E --&gt; I[秒杀失败]</span><br></pre></td></tr></table></figure>
+
+<p><strong>安全性保证：</strong></p>
+<ol>
+<li>✅ <strong>Key不存在 &#x3D; 用户没买过</strong> → 允许购买</li>
+<li>✅ <strong>Key存在但用户不在 &#x3D; 其他用户买过，当前用户没买</strong> → 允许购买</li>
+<li>✅ <strong>Key存在且用户在 &#x3D; 当前用户已买过</strong> → 拒绝重复下单</li>
+</ol>
+<hr>
+<h3 id="五、对比：不同命令对不存在Key的处理"><a href="#五、对比：不同命令对不存在Key的处理" class="headerlink" title="五、对比：不同命令对不存在Key的处理"></a>五、对比：不同命令对不存在Key的处理</h3><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>Key不存在时的行为</th>
+<th>是否创建Key</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>SISMEMBER key member</code></td>
+<td>返回 0</td>
+<td>❌ 不创建</td>
+</tr>
+<tr>
+<td><code>SADD key member</code></td>
+<td>创建空Set，添加member</td>
+<td>✅ 自动创建</td>
+</tr>
+<tr>
+<td><code>GET key</code></td>
+<td>返回 nil</td>
+<td>❌ 不创建</td>
+</tr>
+<tr>
+<td><code>SET key value</code></td>
+<td>创建Key并设值</td>
+<td>✅ 自动创建</td>
+</tr>
+<tr>
+<td><code>INCR key</code></td>
+<td>创建Key并设为0，再+1</td>
+<td>✅ 自动创建</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="六、实际执行示例"><a href="#六、实际执行示例" class="headerlink" title="六、实际执行示例"></a>六、实际执行示例</h3><p><strong>第一个用户（userId&#x3D;10086）：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 执行前</span></span><br><span class="line">seckill:stock:1 = <span class="string">&quot;100&quot;</span></span><br><span class="line">seckill:order:1 = (不存在)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行 SISMEMBER</span></span><br><span class="line">127.0.0.1:6379&gt; SISMEMBER seckill:order:1 10086</span><br><span class="line">(<span class="built_in">integer</span>) 0    <span class="comment"># ← 返回0，条件为false，继续执行</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行 SADD</span></span><br><span class="line">127.0.0.1:6379&gt; SADD seckill:order:1 10086</span><br><span class="line">(<span class="built_in">integer</span>) 1    <span class="comment"># ← 自动创建Set并添加</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行后</span></span><br><span class="line">seckill:stock:1 = <span class="string">&quot;99&quot;</span></span><br><span class="line">seckill:order:1 = &#123;<span class="string">&quot;10086&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>第二个用户（userId&#x3D;10087）：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 执行 SISMEMBER</span></span><br><span class="line">127.0.0.1:6379&gt; SISMEMBER seckill:order:1 10087</span><br><span class="line">(<span class="built_in">integer</span>) 0    <span class="comment"># ← 10087不在Set中，允许购买</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行 SADD</span></span><br><span class="line">127.0.0.1:6379&gt; SADD seckill:order:1 10087</span><br><span class="line">(<span class="built_in">integer</span>) 1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行后</span></span><br><span class="line">seckill:order:1 = &#123;<span class="string">&quot;10086&quot;</span>, <span class="string">&quot;10087&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>第一个用户再次购买（重复下单）：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 执行 SISMEMBER</span></span><br><span class="line">127.0.0.1:6379&gt; SISMEMBER seckill:order:1 10086</span><br><span class="line">(<span class="built_in">integer</span>) 1    <span class="comment"># ← 返回1，条件为true，return 2 拒绝</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Lua脚本返回2，Java层提示&quot;不可以重复下单&quot;</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="七、总结"><a href="#七、总结" class="headerlink" title="七、总结"></a>七、总结</h3><p>对于你的问题 <strong>“第一个用户执行到 SISMEMBER 会怎样”</strong>：</p>
+<ol>
+<li>✅ <strong>不会报错</strong>：Redis容错性很好</li>
+<li>✅ <strong>返回 0</strong>：表示该用户不在Set中（因为Set还不存在）</li>
+<li>✅ <strong>继续执行</strong>：<code>if(0)</code> 为 false，不会进入 <code>return 2</code></li>
+<li>✅ <strong>后续创建</strong>：执行到 <code>SADD</code> 时才真正创建Set</li>
+<li>✅ <strong>逻辑正确</strong>：完美实现”一人一单”的判断</li>
+</ol>
+<p>这就是Redis设计的巧妙之处：<strong>查询类命令不创建Key，写入类命令自动创建Key</strong>，既安全又高效！🎯</p>
+<h1 id="基于-Redis-Stream-的异步秒杀下单流程："><a href="#基于-Redis-Stream-的异步秒杀下单流程：" class="headerlink" title="基于 Redis Stream 的异步秒杀下单流程："></a><strong>基于 Redis Stream 的异步秒杀下单流程</strong>：</h1><hr>
+<h2 id="📋-完整异步下单流程图"><a href="#📋-完整异步下单流程图" class="headerlink" title="📋 完整异步下单流程图"></a>📋 完整异步下单流程图</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">graph TD</span><br><span class="line">    A[用户发起秒杀请求] --&gt; B[VoucherOrderController.seckillVoucher]</span><br><span class="line">    B --&gt; C[VoucherOrderServiceImpl.seckillVoucher]</span><br><span class="line">    C --&gt; D[生成全局唯一订单ID - RedisIdWorker]</span><br><span class="line">    D --&gt; E[执行Lua脚本 seckill.lua]</span><br><span class="line">    E --&gt; F&#123;库存是否充足?&#125;</span><br><span class="line">    F --&gt;|不足| G[返回1: 库存不足]</span><br><span class="line">    F --&gt;|充足| H&#123;是否重复下单?&#125;</span><br><span class="line">    H --&gt;|是| I[返回2: 不能重复下单]</span><br><span class="line">    H --&gt;|否| J[扣减Redis库存 incrby -1]</span><br><span class="line">    J --&gt; K[记录用户已购买 sadd orderkey]</span><br><span class="line">    K --&gt; L[将订单信息写入Stream xadd]</span><br><span class="line">    L --&gt; M[返回订单ID给前端]</span><br><span class="line"></span><br><span class="line">    N[VoucherOrderHandler独立线程] --&gt; O[阻塞读取Stream消息 read]</span><br><span class="line">    O --&gt; P&#123;是否有新消息?&#125;</span><br><span class="line">    P --&gt;|无| O</span><br><span class="line">    P --&gt;|有| Q[解析消息MapRecord]</span><br><span class="line">    Q --&gt; R[构建VoucherOrder对象]</span><br><span class="line">    R --&gt; S[一人一单校验查询数据库]</span><br><span class="line">    S --&gt; T&#123;是否已购买?&#125;</span><br><span class="line">    T --&gt;|是| U[跳过创建, 直接ACK]</span><br><span class="line">    T --&gt;|否| V[保存订单到数据库 save]</span><br><span class="line">    V --&gt; W[手动确认消息 acknowledge ACK]</span><br><span class="line">    W --&gt; O</span><br><span class="line"></span><br><span class="line">    X[处理异常] --&gt; Y[捕获外层异常]</span><br><span class="line">    Y --&gt; Z[从pending列表读取 read from 0]</span><br><span class="line">    Z --&gt; AA&#123;是否有pending消息?&#125;</span><br><span class="line">    AA --&gt;|无| BB[结束重试]</span><br><span class="line">    AA --&gt;|有| CC[重新处理pending消息]</span><br><span class="line">    CC --&gt; DD[手动ACK pending消息]</span><br><span class="line">    DD --&gt; Z</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="🔍-详细流程分解"><a href="#🔍-详细流程分解" class="headerlink" title="🔍 详细流程分解"></a>🔍 详细流程分解</h2><h3 id="第一阶段：同步处理（快速响应）"><a href="#第一阶段：同步处理（快速响应）" class="headerlink" title="第一阶段：同步处理（快速响应）"></a><strong>第一阶段：同步处理（快速响应）</strong></h3><h3 id="1️⃣-用户发起请求"><a href="#1️⃣-用户发起请求" class="headerlink" title="1️⃣ 用户发起请求"></a>1️⃣ <strong>用户发起请求</strong></h3><ul>
+<li><strong>代码位置</strong>: <code>VoucherOrderController.java:28-32</code></li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@PostMapping(&quot;seckill/&#123;id&#125;&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">Result</span> <span class="title function_">seckillVoucher</span><span class="params">(<span class="meta">@PathVariable(&quot;id&quot;)</span> Long voucherId)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> voucherOrderService.seckillVoucher(voucherId);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2️⃣-生成全局唯一订单ID"><a href="#2️⃣-生成全局唯一订单ID" class="headerlink" title="2️⃣ 生成全局唯一订单ID"></a>2️⃣ <strong>生成全局唯一订单ID</strong></h3><ul>
+<li><strong>代码位置</strong>: <code>VoucherOrderServiceImpl.java:77</code></li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">long</span> <span class="variable">orderId</span> <span class="operator">=</span> redisIdWorker.nextId(<span class="string">&quot;order&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>作用</strong>: 使用雪花算法生成分布式唯一ID，避免数据库自增ID瓶颈</li>
+</ul>
+<h3 id="3️⃣-执行-Lua-脚本进行原子性校验和预处理"><a href="#3️⃣-执行-Lua-脚本进行原子性校验和预处理" class="headerlink" title="3️⃣ 执行 Lua 脚本进行原子性校验和预处理"></a>3️⃣ <strong>执行 Lua 脚本进行原子性校验和预处理</strong></h3><ul>
+<li><strong>代码位置</strong>: <code>VoucherOrderServiceImpl.java:81-87</code></li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Long</span> <span class="variable">result</span> <span class="operator">=</span> stringRedisTemplate.execute(</span><br><span class="line">    SECKILL_SCRIPT,</span><br><span class="line">    Collections.emptyList(),</span><br><span class="line">    voucherId.toString(),           <span class="comment">// ARGV[1]</span></span><br><span class="line">    UserHolder.getUser().getId().toString(),  <span class="comment">// ARGV[2]</span></span><br><span class="line">    String.valueOf(orderId)         <span class="comment">// ARGV[3]</span></span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>Lua脚本逻辑</strong>: <code>seckill.lua</code><ul>
+<li><p><strong>步骤1</strong>: 判断库存 <code>get seckill:stock:{voucherId}</code> ≤ 0 → 返回1</p>
+</li>
+<li><p><strong>步骤2</strong>: 判断重复购买 <code>sismember seckill:order:{voucherId} userId</code> → 返回2</p>
+</li>
+<li><p><strong>步骤3</strong>: 扣减库存 <code>incrby seckill:stock:{voucherId} -1</code></p>
+</li>
+<li><p><strong>步骤4</strong>: 标记用户已购买 <code>sadd seckill:order:{voucherId} userId</code></p>
+</li>
+<li><p><strong>步骤5</strong>: <strong>关键步骤</strong> - 将订单信息写入 Stream</p>
+  <figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">redis.call(<span class="string">&quot;xadd&quot;</span>, <span class="string">&quot;stream.orders&quot;</span>, <span class="string">&quot;*&quot;</span>,</span><br><span class="line">           <span class="string">&quot;userId&quot;</span>, userId,</span><br><span class="line">           <span class="string">&quot;voucherId&quot;</span>, voucherId,</span><br><span class="line">           <span class="string">&quot;id&quot;</span>, orderId)</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ul>
+<h3 id="4️⃣-立即返回结果给用户"><a href="#4️⃣-立即返回结果给用户" class="headerlink" title="4️⃣ 立即返回结果给用户"></a>4️⃣ <strong>立即返回结果给用户</strong></h3><ul>
+<li><strong>代码位置</strong>: <code>VoucherOrderServiceImpl.java:90-97</code></li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="variable">r</span> <span class="operator">=</span> result.intValue();</span><br><span class="line"><span class="keyword">if</span> (r != <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> Result.fail(r == <span class="number">1</span> ? <span class="string">&quot;库存不足&quot;</span> : <span class="string">&quot;不能重复下单&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">return</span> Result.ok(orderId);  <span class="comment">// 返回订单ID，此时订单尚未存入数据库</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="第二阶段：异步处理（后台消费）"><a href="#第二阶段：异步处理（后台消费）" class="headerlink" title="第二阶段：异步处理（后台消费）"></a><strong>第二阶段：异步处理（后台消费）</strong></h3><h3 id="5️⃣-初始化消费者组和启动消费线程"><a href="#5️⃣-初始化消费者组和启动消费线程" class="headerlink" title="5️⃣ 初始化消费者组和启动消费线程"></a>5️⃣ <strong>初始化消费者组和启动消费线程</strong></h3><ul>
+<li><strong>代码位置</strong>: <code>VoucherOrderServiceImpl.java:58-70</code></li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@PostConstruct</span></span><br><span class="line"><span class="keyword">private</span> <span class="type">void</span> <span class="title function_">init</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="comment">// 创建消费者组 g1（如果不存在）</span></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        stringRedisTemplate.opsForStream().createGroup(<span class="string">&quot;stream.orders&quot;</span>, <span class="string">&quot;g1&quot;</span>);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        <span class="comment">// 消费者组已存在，忽略异常</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 创建处理器并提交到线程池（10个固定线程）</span></span><br><span class="line">    <span class="type">VoucherOrderHandler</span> <span class="variable">handler</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">VoucherOrderHandler</span>(<span class="built_in">this</span>, seckillVoucherService, stringRedisTemplate);</span><br><span class="line">    SECKILL_ORDER_EXECUTOR.submit(handler);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="6️⃣-阻塞读取-Stream-消息"><a href="#6️⃣-阻塞读取-Stream-消息" class="headerlink" title="6️⃣ 阻塞读取 Stream 消息"></a>6️⃣ <strong>阻塞读取 Stream 消息</strong></h3><ul>
+<li><strong>代码位置</strong>: <code>VoucherOrderHandler.java:43-49</code></li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">List</span>&lt;MapRecord&lt;String, Object, Object&gt;&gt; <span class="variable">messages</span> <span class="operator">=</span> stringRedisTemplate.opsForStream().read(</span><br><span class="line">    Consumer.from(STREAM_GROUP, STREAM_CONSUMER),  <span class="comment">// 消费者标识: g1.c1</span></span><br><span class="line">    StreamReadOptions.empty()</span><br><span class="line">        .count(<span class="number">1</span>)                                   <span class="comment">// 每次读取1条</span></span><br><span class="line">        .block(Duration.ofSeconds(<span class="number">2</span>)),              <span class="comment">// 阻塞等待2秒</span></span><br><span class="line">    StreamOffset.create(STREAM_NAME, ReadOffset.lastConsumed())  <span class="comment">// 从未消费位置开始</span></span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键参数说明</strong>:</p>
+<ul>
+<li><code>Consumer.from(&quot;g1&quot;, &quot;c1&quot;)</code>: 指定消费者组 g1 和消费者 c1</li>
+<li><code>ReadOffset.lastConsumed()</code>: 从上次消费的位置继续（不重复消费）</li>
+<li><code>block(Duration.ofSeconds(2))</code>: 无消息时阻塞2秒后返回null</li>
+</ul>
+<h3 id="7️⃣-解析消息并构建订单对象"><a href="#7️⃣-解析消息并构建订单对象" class="headerlink" title="7️⃣ 解析消息并构建订单对象"></a>7️⃣ <strong>解析消息并构建订单对象</strong></h3><ul>
+<li><strong>代码位置</strong>: <code>VoucherOrderHandler.java:106-130</code></li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="type">void</span> <span class="title function_">handleMessage</span><span class="params">(MapRecord&lt;String, Object, Object&gt; record)</span> &#123;</span><br><span class="line">    <span class="type">Map</span>&lt;Object, Object&gt; <span class="variable">values</span> <span class="operator">=</span> record.getValue();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 提取Stream中的字段</span></span><br><span class="line">    <span class="type">Long</span> <span class="variable">userId</span> <span class="operator">=</span> Long.valueOf(values.get(<span class="string">&quot;userId&quot;</span>).toString());</span><br><span class="line">    <span class="type">Long</span> <span class="variable">voucherId</span> <span class="operator">=</span> Long.valueOf(values.get(<span class="string">&quot;voucherId&quot;</span>).toString());</span><br><span class="line">    <span class="type">Long</span> <span class="variable">orderId</span> <span class="operator">=</span> Long.valueOf(values.get(<span class="string">&quot;id&quot;</span>).toString());</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 构建订单对象</span></span><br><span class="line">    <span class="type">VoucherOrder</span> <span class="variable">voucherOrder</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">VoucherOrder</span>();</span><br><span class="line">    voucherOrder.setId(orderId);</span><br><span class="line">    voucherOrder.setUserId(userId);</span><br><span class="line">    voucherOrder.setVoucherId(voucherId);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 创建订单</span></span><br><span class="line">    saveVoucherOrder(voucherOrder);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="8️⃣-一人一单校验-保存订单到数据库"><a href="#8️⃣-一人一单校验-保存订单到数据库" class="headerlink" title="8️⃣ 一人一单校验 + 保存订单到数据库"></a>8️⃣ <strong>一人一单校验 + 保存订单到数据库</strong></h3><ul>
+<li><strong>代码位置</strong>: <code>VoucherOrderHandler.java:138-165</code></li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="type">void</span> <span class="title function_">saveVoucherOrder</span><span class="params">(VoucherOrder voucherOrder)</span> &#123;</span><br><span class="line">    <span class="type">Long</span> <span class="variable">userId</span> <span class="operator">=</span> voucherOrder.getUserId();</span><br><span class="line">    <span class="type">Long</span> <span class="variable">voucherId</span> <span class="operator">=</span> voucherOrder.getVoucherId();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 一人一单校验（查询数据库）</span></span><br><span class="line">    <span class="type">int</span> <span class="variable">count</span> <span class="operator">=</span> voucherOrderService.query()</span><br><span class="line">            .eq(<span class="string">&quot;user_id&quot;</span>, userId)</span><br><span class="line">            .eq(<span class="string">&quot;voucher_id&quot;</span>, voucherId)</span><br><span class="line">            .count();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (count &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        log.warn(<span class="string">&quot;用户&#123;&#125;已购买过该优惠券&#123;&#125;，跳过订单创建&quot;</span>, userId, voucherId);</span><br><span class="line">        <span class="keyword">return</span>;  <span class="comment">// 已购买则跳过</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ⚠️ 注意：库存已在Lua脚本中扣减，这里不再重复扣减</span></span><br><span class="line">    <span class="type">boolean</span> <span class="variable">success</span> <span class="operator">=</span> voucherOrderService.save(voucherOrder);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!success) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">RuntimeException</span>(<span class="string">&quot;订单保存失败&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="9️⃣-手动确认消息（ACK）"><a href="#9️⃣-手动确认消息（ACK）" class="headerlink" title="9️⃣ 手动确认消息（ACK）"></a>9️⃣ <strong>手动确认消息（ACK）</strong></h3><ul>
+<li><strong>代码位置</strong>: <code>VoucherOrderHandler.java:61</code></li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">stringRedisTemplate.opsForStream().acknowledge(STREAM_NAME, STREAM_GROUP, record.getId());</span><br></pre></td></tr></table></figure>
+
+<p><strong>ACK的作用</strong>:</p>
+<ul>
+<li>标记消息已成功处理，从 Pending List 中移除</li>
+<li>如果不ACK，消息会一直留在 Pending List，导致重复消费</li>
+</ul>
+<hr>
+<h3 id="第三阶段：异常重试机制（Pending-处理）"><a href="#第三阶段：异常重试机制（Pending-处理）" class="headerlink" title="第三阶段：异常重试机制（Pending 处理）"></a><strong>第三阶段：异常重试机制（Pending 处理）</strong></h3><h3 id="🔟-捕获异常并处理-Pending-消息"><a href="#🔟-捕获异常并处理-Pending-消息" class="headerlink" title="🔟 捕获异常并处理 Pending 消息"></a>🔟 <strong>捕获异常并处理 Pending 消息</strong></h3><ul>
+<li><strong>代码位置</strong>: <code>VoucherOrderHandler.java:63-99</code></li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">    log.error(<span class="string">&quot;处理订单消息异常，开始处理pending列表&quot;</span>, e);</span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">// 从pending列表的第一个消息开始读取</span></span><br><span class="line">            <span class="type">List</span>&lt;MapRecord&lt;String, Object, Object&gt;&gt; <span class="variable">pendingMessages</span> <span class="operator">=</span> stringRedisTemplate.opsForStream().read(</span><br><span class="line">                Consumer.from(STREAM_GROUP, STREAM_CONSUMER),</span><br><span class="line">                StreamReadOptions.empty().count(<span class="number">1</span>),</span><br><span class="line">                StreamOffset.create(STREAM_NAME, ReadOffset.from(<span class="string">&quot;0&quot;</span>))  <span class="comment">// 从第一个pending消息开始</span></span><br><span class="line">            );</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (pendingMessages == <span class="literal">null</span> || pendingMessages.isEmpty()) &#123;</span><br><span class="line">                <span class="keyword">break</span>;  <span class="comment">// 没有pending消息，退出重试循环</span></span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 重新处理pending消息</span></span><br><span class="line">            <span class="type">MapRecord</span>&lt;String, Object, Object&gt; <span class="variable">pendingRecord</span> <span class="operator">=</span> pendingMessages.get(<span class="number">0</span>);</span><br><span class="line">            handleMessage(pendingRecord);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 手动ACK pending消息</span></span><br><span class="line">            stringRedisTemplate.opsForStream().acknowledge(STREAM_NAME, STREAM_GROUP, pendingRecord.getId());</span><br><span class="line"></span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception ex) &#123;</span><br><span class="line">            log.error(<span class="string">&quot;处理pending消息异常，继续重试&quot;</span>, ex);</span><br><span class="line">            Thread.sleep(<span class="number">50</span>);  <span class="comment">// 短暂休眠后继续重试</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>Pending 机制原理</strong>:</p>
+<ul>
+<li>当消息被读取但未ACK时，会进入 Pending List</li>
+<li><code>ReadOffset.from(&quot;0&quot;)</code>: 从 Pending List 的第一个消息开始读取</li>
+<li>确保异常情况下消息不会丢失，会被重新处理</li>
+</ul>
+<hr>
+<h2 id="🎯-核心设计要点"><a href="#🎯-核心设计要点" class="headerlink" title="🎯 核心设计要点"></a>🎯 核心设计要点</h2><h3 id="✅-优势"><a href="#✅-优势" class="headerlink" title="✅ 优势"></a>✅ <strong>优势</strong></h3><ol>
+<li><strong>高性能</strong>: 用户请求只需执行Lua脚本（内存操作），立即返回，无需等待数据库IO</li>
+<li><strong>削峰填谷</strong>: 消息队列缓冲瞬时高并发流量，后台线程按能力消费</li>
+<li><strong>可靠性</strong>: Pending 机制保证消息不丢失，异常自动重试</li>
+<li><strong>原子性</strong>: Lua脚本保证库存扣减和用户判重的原子性</li>
+</ol>
+<h3 id="⚠️-注意事项"><a href="#⚠️-注意事项" class="headerlink" title="⚠️ 注意事项"></a>⚠️ <strong>注意事项</strong></h3><ol>
+<li><strong>库存预扣减</strong>: Lua脚本中已扣减Redis库存，消费者不再重复扣减</li>
+<li><strong>二次校验</strong>: 消费者仍需查询数据库做一人一单校验（防止Redis数据不一致）</li>
+<li><strong>线程池配置</strong>: 固定10个线程消费，可根据数据库承受能力调整</li>
+<li><strong>ACK时机</strong>: 必须在业务成功后才ACK，否则会导致消息丢失</li>
+</ol>
+<hr>
+<h2 id="📊-数据流转示意"><a href="#📊-数据流转示意" class="headerlink" title="📊 数据流转示意"></a>📊 数据流转示意</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">用户请求</span><br><span class="line">  ↓</span><br><span class="line">Controller (接收voucherId)</span><br><span class="line">  ↓</span><br><span class="line">Service (生成orderId)</span><br><span class="line">  ↓</span><br><span class="line">Lua脚本 (Redis内存操作)</span><br><span class="line">  ├─ 检查库存 seckill:stock:&#123;id&#125;</span><br><span class="line">  ├─ 检查重复 seckill:order:&#123;id&#125; (Set)</span><br><span class="line">  ├─ 扣减库存 DECR</span><br><span class="line">  ├─ 标记用户 SADD</span><br><span class="line">  └─ 写入Stream stream.orders (XADD)</span><br><span class="line">  ↓</span><br><span class="line">立即返回orderId给前端</span><br><span class="line">  ↓</span><br><span class="line">═══════════════════════════ (异步边界)</span><br><span class="line">  ↓</span><br><span class="line">VoucherOrderHandler (独立线程)</span><br><span class="line">  ├─ 阻塞读取Stream (READ)</span><br><span class="line">  ├─ 解析消息 (userId, voucherId, orderId)</span><br><span class="line">  ├─ 查询数据库校验一人一单</span><br><span class="line">  ├─ 保存订单到MySQL (INSERT)</span><br><span class="line">  └─ 确认消息 (ACK)</span><br></pre></td></tr></table></figure>
+
+<p>这就是完整的异步下单流程！通过 Redis Stream 实现了<strong>同步快速响应 + 异步可靠落库</strong>的架构模式。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/myblog/2026/09/06/Redis%E9%AB%98%E7%BA%A7%E7%AF%87/" rel="prev" title="Redis高级篇">
+                  <i class="fa fa-angle-left"></i> Redis高级篇
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/myblog/2026/09/06/%E6%88%91%E7%9A%84%E5%AD%A6%E4%B9%A0%E7%A7%92%E6%9D%80/" rel="next" title="我的学习秒杀">
+                  我的学习秒杀 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">woshiyigedacainiao</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

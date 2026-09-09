@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/myblog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/myblog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/myblog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/myblog/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/myblog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css" integrity="sha256-4Lad8m4ZWW1Lgb9+sMVLYEfnIh7BjV1NQMEe79Pviks=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"woshiyigedacainiao.github.io","root":"/myblog/","images":"/myblog/images","scheme":"Muse","darkmode":true,"version":"8.29.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/myblog/js/config.js" defer></script>
+
+    <meta name="description" content="#hmall 项目完整登录认证鉴权流程 本项目采用 Spring Cloud Gateway + JWT(RS256) + ThreadLocal 的微服务统一鉴权方案。核心思路：网关统一验签，服务间通过请求头传递用户身份，各服务用 ThreadLocal 持有当前用户。 一、整体架构分层   模块 职责    hm-gateway 统一入口，校验 JWT、放行&#x2F;拦截、透传用户信息">
+<meta property="og:type" content="article">
+<meta property="og:title" content="我的鉴权登录认证">
+<meta property="og:url" content="https://woshiyigedacainiao.github.io/myblog/2026/09/09/%E6%88%91%E7%9A%84%E9%89%B4%E6%9D%83%E7%99%BB%E5%BD%95%E8%AE%A4%E8%AF%81/index.html">
+<meta property="og:site_name" content="我的Java学习博客">
+<meta property="og:description" content="#hmall 项目完整登录认证鉴权流程 本项目采用 Spring Cloud Gateway + JWT(RS256) + ThreadLocal 的微服务统一鉴权方案。核心思路：网关统一验签，服务间通过请求头传递用户身份，各服务用 ThreadLocal 持有当前用户。 一、整体架构分层   模块 职责    hm-gateway 统一入口，校验 JWT、放行&#x2F;拦截、透传用户信息">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-09-09T02:35:58.000Z">
+<meta property="article:modified_time" content="2026-09-09T03:46:54.920Z">
+<meta property="article:author" content="woshiyigedacainiao">
+<meta property="article:tag" content="Java,SpringBoot,MySQL,Redis">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://woshiyigedacainiao.github.io/myblog/2026/09/09/%E6%88%91%E7%9A%84%E9%89%B4%E6%9D%83%E7%99%BB%E5%BD%95%E8%AE%A4%E8%AF%81/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://woshiyigedacainiao.github.io/myblog/2026/09/09/%E6%88%91%E7%9A%84%E9%89%B4%E6%9D%83%E7%99%BB%E5%BD%95%E8%AE%A4%E8%AF%81/","path":"2026/09/09/我的鉴权登录认证/","title":"我的鉴权登录认证"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>我的鉴权登录认证 | 我的Java学习博客</title>
+  
+
+
+
+
+
+
+
+
+  
+<script src="/myblog/js/utils.js" defer></script><script src="/myblog/js/motion.js" defer></script><script src="/myblog/js/sidebar.js" defer></script><script src="/myblog/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/myblog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-search popup-trigger" aria-label="搜索" role="button">
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/myblog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">我的Java学习博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-toggle" aria-label="切换导航栏" role="button">
+  </div>
+</div>
+
+
+
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84%E5%88%86%E5%B1%82"><span class="nav-number">1.</span> <span class="nav-text">一、整体架构分层</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E9%98%B6%E6%AE%B5%E4%B8%80%EF%BC%9A%E7%99%BB%E5%BD%95%EF%BC%88%E7%AD%BE%E5%8F%91-Token%EF%BC%89"><span class="nav-number">2.</span> <span class="nav-text">二、阶段一：登录（签发 Token）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E8%AF%B7%E6%B1%82%E8%BF%9B%E5%85%A5%E7%BD%91%E5%85%B3"><span class="nav-number">2.1.</span> <span class="nav-text">1. 请求进入网关</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-user-service-%E5%A4%84%E7%90%86%E7%99%BB%E5%BD%95"><span class="nav-number">2.2.</span> <span class="nav-text">2. user-service 处理登录</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-JWT-%E7%94%9F%E6%88%90"><span class="nav-number">2.3.</span> <span class="nav-text">3. JWT 生成</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E9%98%B6%E6%AE%B5%E4%BA%8C%EF%BC%9A%E4%B8%9A%E5%8A%A1%E8%AF%B7%E6%B1%82%E9%89%B4%E6%9D%83%EF%BC%88%E9%AA%8C-Token-%E9%80%8F%E4%BC%A0%E8%BA%AB%E4%BB%BD%EF%BC%89"><span class="nav-number">3.</span> <span class="nav-text">三、阶段二：业务请求鉴权（验 Token + 透传身份）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E7%BD%91%E5%85%B3%E5%85%A8%E5%B1%80%E8%BF%87%E6%BB%A4%E5%99%A8%E6%8B%A6%E6%88%AA"><span class="nav-number">3.1.</span> <span class="nav-text">1. 网关全局过滤器拦截</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-JWT-%E8%A7%A3%E6%9E%90%E6%A0%A1%E9%AA%8C"><span class="nav-number">3.2.</span> <span class="nav-text">2. JWT 解析校验</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E4%B8%8B%E6%B8%B8%E6%9C%8D%E5%8A%A1%E6%8E%A5%E6%94%B6%E7%94%A8%E6%88%B7%E8%BA%AB%E4%BB%BD"><span class="nav-number">3.3.</span> <span class="nav-text">3. 下游服务接收用户身份</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-%E4%B8%9A%E5%8A%A1%E4%BB%A3%E7%A0%81%E4%BD%BF%E7%94%A8%E5%BD%93%E5%89%8D%E7%94%A8%E6%88%B7"><span class="nav-number">3.4.</span> <span class="nav-text">4. 业务代码使用当前用户</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E5%AE%8C%E6%95%B4%E6%97%B6%E5%BA%8F%E5%9B%BE"><span class="nav-number">4.</span> <span class="nav-text">四、完整时序图</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E5%85%B3%E9%94%AE%E8%AE%BE%E8%AE%A1%E8%A6%81%E7%82%B9"><span class="nav-number">5.</span> <span class="nav-text">五、关键设计要点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%AD%E3%80%81%E6%A0%B8%E5%BF%83%E6%96%87%E4%BB%B6%E6%B8%85%E5%8D%95"><span class="nav-number">6.</span> <span class="nav-text">六、核心文件清单</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">woshiyigedacainiao</p>
+  <div class="site-description" itemprop="description">Java后端学习笔记、项目踩坑总结</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/myblog/archives/">
+          <span class="site-state-item-count">22</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://woshiyigedacainiao.github.io/myblog/2026/09/09/%E6%88%91%E7%9A%84%E9%89%B4%E6%9D%83%E7%99%BB%E5%BD%95%E8%AE%A4%E8%AF%81/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/myblog/images/avatar.gif">
+      <meta itemprop="name" content="woshiyigedacainiao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我的Java学习博客">
+      <meta itemprop="description" content="Java后端学习笔记、项目踩坑总结">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="我的鉴权登录认证 | 我的Java学习博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          我的鉴权登录认证
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-09-09 10:35:58 / 修改时间：11:46:54" itemprop="dateCreated datePublished" datetime="2026-09-09T10:35:58+08:00">2026-09-09</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>#hmall 项目完整登录认证鉴权流程</p>
+<p>本项目采用 <strong>Spring Cloud Gateway + JWT(RS256) + ThreadLocal</strong> 的微服务统一鉴权方案。核心思路：<strong>网关统一验签，服务间通过请求头传递用户身份，各服务用 ThreadLocal 持有当前用户</strong>。</p>
+<h3 id="一、整体架构分层"><a href="#一、整体架构分层" class="headerlink" title="一、整体架构分层"></a>一、整体架构分层</h3><table>
+<thead>
+<tr>
+<th>模块</th>
+<th>职责</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>hm-gateway</code></td>
+<td>统一入口，校验 JWT、放行&#x2F;拦截、透传用户信息</td>
+</tr>
+<tr>
+<td><code>hm-common</code></td>
+<td>公共组件：异常、<code>UserContext</code>、<code>UserInfoInterceptor</code>、自动配置</td>
+</tr>
+<tr>
+<td><code>user-service</code></td>
+<td>登录接口，生成 JWT</td>
+</tr>
+<tr>
+<td><code>cart-service</code> 等业务服务</td>
+<td>通过 <code>UserContext</code> 获取当前用户，执行业务</td>
+</tr>
+</tbody></table>
+<h3 id="二、阶段一：登录（签发-Token）"><a href="#二、阶段一：登录（签发-Token）" class="headerlink" title="二、阶段一：登录（签发 Token）"></a>二、阶段一：登录（签发 Token）</h3><h4 id="1-请求进入网关"><a href="#1-请求进入网关" class="headerlink" title="1. 请求进入网关"></a>1. 请求进入网关</h4><p>客户端 <code>POST /users/login</code>（body 为 username&#x2F;password）。</p>
+<p>网关 <code>AuthGlobalFilter</code> 首先判断路径是否在白名单：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># application.yaml</span></span><br><span class="line"><span class="attr">hm:</span></span><br><span class="line">  <span class="attr">auth:</span></span><br><span class="line">    <span class="attr">excludePaths:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/users/login</span>   <span class="comment"># 登录接口放行</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/search/**</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/items/**</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/hi</span></span><br></pre></td></tr></table></figure>
+
+<p><code>AuthGlobalFilter.isExclude()</code> 命中白名单 → <strong>直接放行，不校验 token</strong>。</p>
+<h4 id="2-user-service-处理登录"><a href="#2-user-service-处理登录" class="headerlink" title="2. user-service 处理登录"></a>2. user-service 处理登录</h4><p>入口 <code>UserController.login()</code> → <code>UserServiceImpl.login()</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// UserServiceImpl.java</span></span><br><span class="line"><span class="type">User</span> <span class="variable">user</span> <span class="operator">=</span> lambdaQuery().eq(User::getUsername, username).one();</span><br><span class="line">Assert.notNull(user, <span class="string">&quot;用户名错误&quot;</span>);</span><br><span class="line"><span class="keyword">if</span> (user.getStatus() == UserStatus.FROZEN) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">ForbiddenException</span>(<span class="string">&quot;用户被冻结&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">if</span> (!passwordEncoder.matches(password, user.getPassword())) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BadRequestException</span>(<span class="string">&quot;用户名或密码错误&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 生成 JWT</span></span><br><span class="line"><span class="type">String</span> <span class="variable">token</span> <span class="operator">=</span> jwtTool.createToken(user.getId(), jwtProperties.getTokenTTL());</span><br></pre></td></tr></table></figure>
+
+<p><strong>密码校验</strong>：使用 <code>BCryptPasswordEncoder</code>（由 <code>SecurityConfig</code> 注入）。</p>
+<h4 id="3-JWT-生成"><a href="#3-JWT-生成" class="headerlink" title="3. JWT 生成"></a>3. JWT 生成</h4><p><code>user-service</code> 的 <code>JwtTool.createToken()</code>（hm-gateway 中也有一份相同的 <code>JwtTool</code>，用于解析）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// JwtTool.java</span></span><br><span class="line"><span class="keyword">return</span> JWT.create()</span><br><span class="line">        .setPayload(<span class="string">&quot;user&quot;</span>, userId)                              <span class="comment">// payload 只存 userId</span></span><br><span class="line">        .setExpiresAt(<span class="keyword">new</span> <span class="title class_">Date</span>(System.currentTimeMillis() + ttl.toMillis()))</span><br><span class="line">        .setSigner(jwtSigner)                                    <span class="comment">// RS256 非对称签名</span></span><br><span class="line">        .sign();</span><br></pre></td></tr></table></figure>
+
+<p>签名密钥来自 <code>hmall.jks</code> 密钥库，由 <code>SecurityConfig.keyPair()</code> 读取：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">KeyStoreKeyFactory</span> <span class="variable">factory</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">KeyStoreKeyFactory</span>(location, password.toCharArray());</span><br><span class="line"><span class="keyword">return</span> factory.getKeyPair(alias, password.toCharArray());</span><br></pre></td></tr></table></figure>
+
+<p>返回 <code>UserLoginVO</code>（含 <code>token</code>、<code>userId</code>、<code>username</code>、<code>balance</code>）。</p>
+<h3 id="三、阶段二：业务请求鉴权（验-Token-透传身份）"><a href="#三、阶段二：业务请求鉴权（验-Token-透传身份）" class="headerlink" title="三、阶段二：业务请求鉴权（验 Token + 透传身份）"></a>三、阶段二：业务请求鉴权（验 Token + 透传身份）</h3><h4 id="1-网关全局过滤器拦截"><a href="#1-网关全局过滤器拦截" class="headerlink" title="1. 网关全局过滤器拦截"></a>1. 网关全局过滤器拦截</h4><p>客户端后续请求携带请求头 <code>Authorization: &lt;jwt&gt;</code>。</p>
+<p><code>AuthGlobalFilter.filter()</code> 执行：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// AuthGlobalFilter.java</span></span><br><span class="line"><span class="keyword">if</span> (isExclude(path)) &#123;</span><br><span class="line">    <span class="keyword">return</span> chain.filter(exchange);   <span class="comment">// 白名单放行</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">String</span> <span class="variable">token</span> <span class="operator">=</span> request.getHeaders().getFirst(<span class="string">&quot;authorization&quot;</span>);</span><br><span class="line">Long userId;</span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    userId = jwtTool.parseToken(token);                <span class="comment">// 验签 + 解析</span></span><br><span class="line">&#125; <span class="keyword">catch</span> (UnauthorizedException e) &#123;</span><br><span class="line">    response.setStatusCode(HttpStatus.UNAUTHORIZED);   <span class="comment">// 401</span></span><br><span class="line">    <span class="keyword">return</span> response.setComplete();</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 把 userId 写入请求头，向下游透传</span></span><br><span class="line"><span class="type">ServerWebExchange</span> <span class="variable">swe</span> <span class="operator">=</span> exchange.mutate()</span><br><span class="line">        .request(b -&gt; b.header(<span class="string">&quot;user-info&quot;</span>, userId.toString()))</span><br><span class="line">        .build();</span><br><span class="line"><span class="keyword">return</span> chain.filter(swe);</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-JWT-解析校验"><a href="#2-JWT-解析校验" class="headerlink" title="2. JWT 解析校验"></a>2. JWT 解析校验</h4><p><code>JwtTool.parseToken()</code> 做四重校验（任一失败抛 <code>UnauthorizedException</code> → 网关返回 401）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// JwtTool.java</span></span><br><span class="line"><span class="keyword">if</span> (token == <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">UnauthorizedException</span>(<span class="string">&quot;未登录&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line">jwt = JWT.of(token).setSigner(jwtSigner);</span><br><span class="line"><span class="keyword">if</span> (!jwt.verify()) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">UnauthorizedException</span>(<span class="string">&quot;无效的token&quot;</span>);   <span class="comment">// RS256 签名校验</span></span><br><span class="line">&#125;</span><br><span class="line">JWTValidator.of(jwt).validateDate();                  <span class="comment">// 过期校验</span></span><br><span class="line"><span class="type">Object</span> <span class="variable">userPayload</span> <span class="operator">=</span> jwt.getPayload(<span class="string">&quot;user&quot;</span>);</span><br><span class="line"><span class="keyword">if</span> (userPayload == <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">UnauthorizedException</span>(<span class="string">&quot;无效的token&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">return</span> Long.valueOf(userPayload.toString());          <span class="comment">// 取出 userId</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>关键点：网关只把 <strong>userId</strong> 透传给下游，不传递完整 token，下游服务无需再次验签。</p>
+</blockquote>
+<h4 id="3-下游服务接收用户身份"><a href="#3-下游服务接收用户身份" class="headerlink" title="3. 下游服务接收用户身份"></a>3. 下游服务接收用户身份</h4><p>请求到达业务服务（如 cart-service）后，<code>hm-common</code> 自动装配的 <code>UserInfoInterceptor</code> 生效。</p>
+<p>自动装配入口 <code>hm-common/src/main/resources/META-INF/spring.factories</code>：</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">org.springframework.boot.autoconfigure.EnableAutoConfiguration</span>=<span class="string">\</span></span><br><span class="line"><span class="string">  com.hmall.common.config.MvcConfig,\</span></span><br><span class="line"><span class="string">  com.hmall.common.config.JsonConfig,\</span></span><br><span class="line"><span class="string">  com.hmall.common.config.MyBatisConfig</span></span><br></pre></td></tr></table></figure>
+
+<p><code>MvcConfig</code> 注册拦截器（<code>@ConditionalOnClass(DispatcherServlet.class)</code> 确保仅 Web 服务生效）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// MvcConfig.java</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">void</span> <span class="title function_">addInterceptors</span><span class="params">(InterceptorRegistry registry)</span> &#123;</span><br><span class="line">    registry.addInterceptor(<span class="keyword">new</span> <span class="title class_">UserInfoInterceptor</span>());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>UserInfoInterceptor.preHandle()</code> 读取网关透传的 <code>user-info</code> 头，写入 ThreadLocal：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// UserInfoInterceptor.java</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">preHandle</span><span class="params">(HttpServletRequest request, HttpServletResponse response, Object handler)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">userInfo</span> <span class="operator">=</span> request.getHeader(<span class="string">&quot;user-info&quot;</span>);</span><br><span class="line">    <span class="keyword">if</span> (StrUtil.isNotBlank(userInfo)) &#123;</span><br><span class="line">        UserContext.setUser(Long.valueOf(userInfo));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>UserContext</code> 基于 ThreadLocal 存储当前用户 ID：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// UserContext.java</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">ThreadLocal</span>&lt;Long&gt; <span class="variable">tl</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ThreadLocal</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="type">void</span> <span class="title function_">setUser</span><span class="params">(Long userId)</span> &#123; tl.set(userId); &#125;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="type">Long</span> <span class="title function_">getUser</span><span class="params">()</span> &#123; <span class="keyword">return</span> tl.get(); &#125;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="type">void</span> <span class="title function_">removeUser</span><span class="params">()</span> &#123; tl.remove(); &#125;</span><br></pre></td></tr></table></figure>
+
+<p>请求结束后 <code>afterCompletion()</code> 调用 <code>UserContext.removeUser()</code> 清理 ThreadLocal，避免内存泄漏。</p>
+<h4 id="4-业务代码使用当前用户"><a href="#4-业务代码使用当前用户" class="headerlink" title="4. 业务代码使用当前用户"></a>4. 业务代码使用当前用户</h4><p>各服务直接调用 <code>UserContext.getUser()</code> 取得登录用户 ID，例如 <code>CartServiceImpl</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// CartServiceImpl.java</span></span><br><span class="line"><span class="type">Long</span> <span class="variable">userId</span> <span class="operator">=</span> UserContext.getUser();</span><br></pre></td></tr></table></figure>
+
+<h3 id="四、完整时序图"><a href="#四、完整时序图" class="headerlink" title="四、完整时序图"></a>四、完整时序图</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">客户端            hm-gateway              user-service            业务服务(cart等)        hm-common</span><br><span class="line">  |                   |                        |                        |                   |</span><br><span class="line">  |--POST /users/login--&gt;                      |                        |                   |</span><br><span class="line">  |                   |--白名单放行-------------&gt;|                        |                   |</span><br><span class="line">  |                   |                        |--查用户/BCrypt验密------|                   |</span><br><span class="line">  |                   |                        |--JwtTool.createToken--&gt;|                   |</span><br><span class="line">  |&lt;----&#123;token,...&#125;----|                        |                        |                   |</span><br><span class="line">  |                   |                        |                        |                   |</span><br><span class="line">  |--GET /cart (Authorization:token)--&gt;         |                        |                   |</span><br><span class="line">  |                   |--AuthGlobalFilter       |                        |                   |</span><br><span class="line">  |                   |  parseToken验签→userId  |                        |                   |</span><br><span class="line">  |                   |--header(user-info:id)--&gt;|                        |                   |</span><br><span class="line">  |                   |                        |--路由到 cart-service---&gt;|                   |</span><br><span class="line">  |                   |                        |                        |--UserInfoInterceptor</span><br><span class="line">  |                   |                        |                        |  preHandle→UserContext.setUser</span><br><span class="line">  |                   |                        |                        |--业务 UserContext.getUser()</span><br><span class="line">  |                   |                        |                        |  afterCompletion→removeUser</span><br><span class="line">  |&lt;------response----|&lt;-----------------------|&lt;-----------------------|                   |</span><br></pre></td></tr></table></figure>
+
+<h3 id="五、关键设计要点"><a href="#五、关键设计要点" class="headerlink" title="五、关键设计要点"></a>五、关键设计要点</h3><ol>
+<li><strong>非对称签名 RS256</strong>：网关和 user-service 共用同一份 <code>hmall.jks</code> 密钥对，user-service 私钥签发，网关公钥验签（实际都用 <code>KeyPair</code>，含公私钥）。</li>
+<li><strong>网关只做验签</strong>：下游服务不再解析 JWT，性能好且逻辑统一；用户身份通过 <code>user-info</code> 请求头透传。</li>
+<li><strong>白名单机制</strong>：<code>AuthProperties.excludePaths</code> + <code>AntPathMatcher</code> 控制无需鉴权的路径。</li>
+<li><strong>ThreadLocal 用户上下文</strong>：<code>UserContext</code> 让业务层无感获取当前用户，请求结束自动清理。</li>
+<li><strong>统一异常</strong>：<code>UnauthorizedException</code>(401)、<code>ForbiddenException</code>(403)、<code>BadRequestException</code>(400) 等在 <code>hm-common</code> 定义，由 <code>CommonExceptionAdvice</code> 统一处理。</li>
+</ol>
+<h3 id="六、核心文件清单"><a href="#六、核心文件清单" class="headerlink" title="六、核心文件清单"></a>六、核心文件清单</h3><table>
+<thead>
+<tr>
+<th>文件</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>hm-gateway/.../filter/AuthGlobalFilter.java</code></td>
+<td>网关鉴权入口，验 token、透传 user-info</td>
+</tr>
+<tr>
+<td><code>hm-gateway/.../utils/JwtTool.java</code></td>
+<td>JWT 生成&#x2F;解析（RS256）</td>
+</tr>
+<tr>
+<td><code>hm-gateway/.../config/SecurityConfig.java</code></td>
+<td>加载 JKS 密钥对、BCrypt</td>
+</tr>
+<tr>
+<td><code>hm-gateway/.../config/AuthProperties.java</code></td>
+<td>白名单路径配置</td>
+</tr>
+<tr>
+<td><code>user-service/.../service/impl/UserServiceImpl.java</code></td>
+<td>登录逻辑：查用户、验密、发 token</td>
+</tr>
+<tr>
+<td><code>hm-common/.../utils/UserContext.java</code></td>
+<td>ThreadLocal 持有当前用户 ID</td>
+</tr>
+<tr>
+<td><code>hm-common/.../interceptor/UserInfoInterceptor.java</code></td>
+<td>读取 user-info 头写入 ThreadLocal</td>
+</tr>
+<tr>
+<td><code>hm-common/.../config/MvcConfig.java</code></td>
+<td>自动注册拦截器</td>
+</tr>
+<tr>
+<td><code>hm-common/src/main/resources/META-INF/spring.factories</code></td>
+<td>公共组件自动装配入口</td>
+</tr>
+</tbody></table>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/myblog/2026/09/08/%E9%AB%98%E5%B9%B6%E5%8F%91%E4%B8%8B%E5%8D%95-Redis%E9%A2%84%E6%89%A3-MQ%E5%BC%82%E6%AD%A5%E8%90%BD%E5%BA%93-%E6%9E%B6%E6%9E%84%E5%A4%8D%E7%9B%98%E6%96%87%E6%A1%A3/" rel="prev" title="高并发下单 Redis预扣+MQ异步落库 架构复盘文档">
+                  <i class="fa fa-angle-left"></i> 高并发下单 Redis预扣+MQ异步落库 架构复盘文档
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">woshiyigedacainiao</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

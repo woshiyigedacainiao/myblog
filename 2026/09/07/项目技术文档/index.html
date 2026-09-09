@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/myblog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/myblog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/myblog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/myblog/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/myblog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css" integrity="sha256-4Lad8m4ZWW1Lgb9+sMVLYEfnIh7BjV1NQMEe79Pviks=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"woshiyigedacainiao.github.io","root":"/myblog/","images":"/myblog/images","scheme":"Muse","darkmode":true,"version":"8.29.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/myblog/js/config.js" defer></script>
+
+    <meta name="description" content="AIHub 智能 AI 助手平台 —— 技术文档 本文档面向零基础学习者，从零开始讲解项目架构、技术选型、环境搭建、模块实现与运行测试，配合真实代码与流程图，确保读者能独立完成项目本地运行。   目录 一、项目背景与目标 二、技术栈选型及理由 三、目录结构说明 四、环境搭建步骤 五、核心功能模块实现原理与代码解析 六、运行与测试流程 七、业务详细流程 八、常见问题与 Troubleshooting">
+<meta property="og:type" content="article">
+<meta property="og:title" content="高星RAG的技术文档">
+<meta property="og:url" content="https://woshiyigedacainiao.github.io/myblog/2026/09/07/%E9%A1%B9%E7%9B%AE%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3/index.html">
+<meta property="og:site_name" content="我的Java学习博客">
+<meta property="og:description" content="AIHub 智能 AI 助手平台 —— 技术文档 本文档面向零基础学习者，从零开始讲解项目架构、技术选型、环境搭建、模块实现与运行测试，配合真实代码与流程图，确保读者能独立完成项目本地运行。   目录 一、项目背景与目标 二、技术栈选型及理由 三、目录结构说明 四、环境搭建步骤 五、核心功能模块实现原理与代码解析 六、运行与测试流程 七、业务详细流程 八、常见问题与 Troubleshooting">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-09-07T04:30:53.000Z">
+<meta property="article:modified_time" content="2026-09-07T04:35:36.414Z">
+<meta property="article:author" content="woshiyigedacainiao">
+<meta property="article:tag" content="Java,SpringBoot,MySQL,Redis">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://woshiyigedacainiao.github.io/myblog/2026/09/07/%E9%A1%B9%E7%9B%AE%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://woshiyigedacainiao.github.io/myblog/2026/09/07/%E9%A1%B9%E7%9B%AE%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3/","path":"2026/09/07/项目技术文档/","title":"高星RAG的技术文档"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>高星RAG的技术文档 | 我的Java学习博客</title>
+  
+
+
+
+
+
+
+
+
+  
+<script src="/myblog/js/utils.js" defer></script><script src="/myblog/js/motion.js" defer></script><script src="/myblog/js/sidebar.js" defer></script><script src="/myblog/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/myblog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-search popup-trigger" aria-label="搜索" role="button">
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/myblog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">我的Java学习博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-toggle" aria-label="切换导航栏" role="button">
+  </div>
+</div>
+
+
+
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#AIHub-%E6%99%BA%E8%83%BD-AI-%E5%8A%A9%E6%89%8B%E5%B9%B3%E5%8F%B0-%E2%80%94%E2%80%94-%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3"><span class="nav-number">1.</span> <span class="nav-text">AIHub 智能 AI 助手平台 —— 技术文档</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%AE%E5%BD%95"><span class="nav-number">1.1.</span> <span class="nav-text">目录</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E9%A1%B9%E7%9B%AE%E8%83%8C%E6%99%AF%E4%B8%8E%E7%9B%AE%E6%A0%87"><span class="nav-number">1.2.</span> <span class="nav-text">一、项目背景与目标</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-%E9%A1%B9%E7%9B%AE%E8%83%8C%E6%99%AF"><span class="nav-number">1.2.1.</span> <span class="nav-text">1.1 项目背景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-%E7%9B%AE%E6%A0%87%E7%94%A8%E6%88%B7"><span class="nav-number">1.2.2.</span> <span class="nav-text">1.2 目标用户</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-%E8%A7%A3%E5%86%B3%E7%9A%84%E6%A0%B8%E5%BF%83%E9%97%AE%E9%A2%98-%E5%AF%B9%E5%BA%94%E6%96%B9%E6%A1%88"><span class="nav-number">1.2.3.</span> <span class="nav-text">1.3 解决的核心问题 &amp; 对应方案</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-%E5%8A%9F%E8%83%BD%E7%9B%AE%E6%A0%87"><span class="nav-number">1.2.4.</span> <span class="nav-text">1.4 功能目标</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E6%8A%80%E6%9C%AF%E6%A0%88%E9%80%89%E5%9E%8B%E5%8F%8A%E7%90%86%E7%94%B1"><span class="nav-number">1.3.</span> <span class="nav-text">二、技术栈选型及理由</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-%E5%AE%8C%E6%95%B4%E6%8A%80%E6%9C%AF%E6%A0%88%E6%B8%85%E5%8D%95"><span class="nav-number">1.3.1.</span> <span class="nav-text">2.1 完整技术栈清单</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-%E5%85%B3%E9%94%AE%E6%8A%80%E6%9C%AF%E9%80%89%E5%9E%8B%E7%90%86%E7%94%B1"><span class="nav-number">1.3.2.</span> <span class="nav-text">2.2 关键技术选型理由</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%80%89-Spring-Boot%EF%BC%9F"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">为什么选 Spring Boot？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%80%89-LangChain4j-%E8%80%8C%E4%B8%8D%E6%98%AF%E7%9B%B4%E6%8E%A5%E8%B0%83%E7%94%A8%E5%A4%A7%E6%A8%A1%E5%9E%8B-API%EF%BC%9F"><span class="nav-number">1.3.2.2.</span> <span class="nav-text">为什么选 LangChain4j 而不是直接调用大模型 API？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E7%94%A8-Neo4j-%E5%AD%98%E5%8C%BB%E7%96%97%E6%95%B0%E6%8D%AE%E8%80%8C%E4%B8%8D%E6%98%AF-MySQL%EF%BC%9F"><span class="nav-number">1.3.2.3.</span> <span class="nav-text">为什么用 Neo4j 存医疗数据而不是 MySQL？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E7%94%A8-PgVector-%E5%81%9A%E5%90%91%E9%87%8F%E6%A3%80%E7%B4%A2%EF%BC%9F"><span class="nav-number">1.3.2.4.</span> <span class="nav-text">为什么用 PgVector 做向量检索？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E7%94%A8-JWT-%E8%80%8C%E4%B8%8D%E6%98%AF-Session%EF%BC%9F"><span class="nav-number">1.3.2.5.</span> <span class="nav-text">为什么用 JWT 而不是 Session？</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84%E8%AF%B4%E6%98%8E"><span class="nav-number">1.4.</span> <span class="nav-text">三、目录结构说明</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-%E5%AE%8C%E6%95%B4%E7%9B%AE%E5%BD%95%E6%A0%91"><span class="nav-number">1.4.1.</span> <span class="nav-text">3.1 完整目录树</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-%E5%88%86%E5%B1%82%E8%B0%83%E7%94%A8%E5%85%B3%E7%B3%BB"><span class="nav-number">1.4.2.</span> <span class="nav-text">3.2 分层调用关系</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA%E6%AD%A5%E9%AA%A4"><span class="nav-number">1.5.</span> <span class="nav-text">四、环境搭建步骤</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-%E8%BD%AF%E7%A1%AC%E4%BB%B6%E8%A6%81%E6%B1%82"><span class="nav-number">1.5.1.</span> <span class="nav-text">4.1 软硬件要求</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-%E5%AE%89%E8%A3%85%E5%9F%BA%E7%A1%80%E4%BE%9D%E8%B5%96%EF%BC%88Windows-%E4%B8%BA%E4%BE%8B%EF%BC%89"><span class="nav-number">1.5.2.</span> <span class="nav-text">4.2 安装基础依赖（Windows 为例）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%91%A0-%E5%AE%89%E8%A3%85-JDK-21"><span class="nav-number">1.5.2.1.</span> <span class="nav-text">① 安装 JDK 21</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%91%A1-%E5%AE%89%E8%A3%85-MySQL-8"><span class="nav-number">1.5.2.2.</span> <span class="nav-text">② 安装 MySQL 8</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%91%A2-%E5%AE%89%E8%A3%85-Neo4j"><span class="nav-number">1.5.2.3.</span> <span class="nav-text">③ 安装 Neo4j</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%91%A3-%E5%AE%89%E8%A3%85-PostgreSQL-PgVector"><span class="nav-number">1.5.2.4.</span> <span class="nav-text">④ 安装 PostgreSQL + PgVector</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-%E5%85%8B%E9%9A%86%E9%A1%B9%E7%9B%AE%E5%B9%B6%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-number">1.5.3.</span> <span class="nav-text">4.3 克隆项目并初始化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-%E5%88%9D%E5%A7%8B%E5%8C%96%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="nav-number">1.5.4.</span> <span class="nav-text">4.4 初始化数据库</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%91%A0-MySQL-%E5%BB%BA%E5%BA%93%E5%BB%BA%E8%A1%A8"><span class="nav-number">1.5.4.1.</span> <span class="nav-text">① MySQL 建库建表</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%91%A1-Neo4j-%E5%AF%BC%E5%85%A5%E5%8C%BB%E7%96%97%E7%9F%A5%E8%AF%86%E5%9B%BE%E8%B0%B1"><span class="nav-number">1.5.4.2.</span> <span class="nav-text">② Neo4j 导入医疗知识图谱</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-5-%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E8%AF%A6%E8%A7%A3"><span class="nav-number">1.5.5.</span> <span class="nav-text">4.5 配置文件详解</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-6-%E9%85%8D%E7%BD%AE-API-Key%EF%BC%88%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F%E6%96%B9%E5%BC%8F%EF%BC%8C%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="nav-number">1.5.6.</span> <span class="nav-text">4.6 配置 API Key（环境变量方式，推荐）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-7-%E5%AE%89%E8%A3%85%E4%BE%9D%E8%B5%96"><span class="nav-number">1.5.7.</span> <span class="nav-text">4.7 安装依赖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-8-%E7%8E%AF%E5%A2%83%E9%AA%8C%E8%AF%81"><span class="nav-number">1.5.8.</span> <span class="nav-text">4.8 环境验证</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E6%A0%B8%E5%BF%83%E5%8A%9F%E8%83%BD%E6%A8%A1%E5%9D%97%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86%E4%B8%8E%E4%BB%A3%E7%A0%81%E8%A7%A3%E6%9E%90"><span class="nav-number">1.6.</span> <span class="nav-text">五、核心功能模块实现原理与代码解析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="nav-number">1.6.1.</span> <span class="nav-text">5.1 整体架构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-%E5%90%AF%E5%8A%A8%E7%B1%BB"><span class="nav-number">1.6.2.</span> <span class="nav-text">5.2 启动类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-%E7%94%A8%E6%88%B7%E8%AE%A4%E8%AF%81%E6%A8%A1%E5%9D%97%EF%BC%88JWT-%E6%8B%A6%E6%88%AA%E5%99%A8-ThreadLocal%EF%BC%89"><span class="nav-number">1.6.3.</span> <span class="nav-text">5.3 用户认证模块（JWT + 拦截器 + ThreadLocal）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="nav-number">1.6.3.1.</span> <span class="nav-text">流程图</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B3%E9%94%AE%E4%BB%A3%E7%A0%81%EF%BC%9AJWT-%E5%B7%A5%E5%85%B7"><span class="nav-number">1.6.3.2.</span> <span class="nav-text">关键代码：JWT 工具</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B3%E9%94%AE%E4%BB%A3%E7%A0%81%EF%BC%9A%E6%8B%A6%E6%88%AA%E5%99%A8"><span class="nav-number">1.6.3.3.</span> <span class="nav-text">关键代码：拦截器</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-4-%E9%80%9A%E7%94%A8%E5%AF%B9%E8%AF%9D%E6%A8%A1%E5%9D%97%EF%BC%88%E6%B5%81%E5%BC%8F%E8%BE%93%E5%87%BA-%E8%AE%B0%E5%BF%86%E6%8C%81%E4%B9%85%E5%8C%96%EF%BC%89"><span class="nav-number">1.6.4.</span> <span class="nav-text">5.4 通用对话模块（流式输出 + 记忆持久化）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%EF%BC%9AAiServices-%E5%A3%B0%E6%98%8E%E5%BC%8F%E6%8E%A5%E5%8F%A3"><span class="nav-number">1.6.4.1.</span> <span class="nav-text">核心原理：AiServices 声明式接口</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B5%81%E5%BC%8F%E8%BE%93%E5%87%BA%E6%A1%A5%E6%8E%A5"><span class="nav-number">1.6.4.2.</span> <span class="nav-text">流式输出桥接</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AE%B0%E5%BF%86%E6%8C%81%E4%B9%85%E5%8C%96"><span class="nav-number">1.6.4.3.</span> <span class="nav-text">记忆持久化</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-5-%E5%8C%BB%E7%96%97%E6%A8%A1%E5%9D%97%EF%BC%88Neo4j-Function-Calling-%E9%98%B2%E5%B9%BB%E8%A7%89%EF%BC%89"><span class="nav-number">1.6.5.</span> <span class="nav-text">5.5 医疗模块（Neo4j + Function Calling 防幻觉）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3"><span class="nav-number">1.6.5.1.</span> <span class="nav-text">核心思想</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B7%A5%E5%85%B7%E5%AE%9A%E4%B9%89"><span class="nav-number">1.6.5.2.</span> <span class="nav-text">工具定义</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8A%8A%E5%B7%A5%E5%85%B7%E6%8C%82%E5%88%B0-AI-%E5%8A%A9%E6%89%8B"><span class="nav-number">1.6.5.3.</span> <span class="nav-text">把工具挂到 AI 助手</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Cypher-%E6%9F%A5%E8%AF%A2%E7%A4%BA%E4%BE%8B"><span class="nav-number">1.6.5.4.</span> <span class="nav-text">Cypher 查询示例</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-6-PDF-%E6%A8%A1%E5%9D%97%EF%BC%88RAG-%E6%A3%80%E7%B4%A2%E5%A2%9E%E5%BC%BA%E7%94%9F%E6%88%90%EF%BC%89"><span class="nav-number">1.6.6.</span> <span class="nav-text">5.6 PDF 模块（RAG 检索增强生成）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%8C%E6%95%B4-RAG-%E9%93%BE%E8%B7%AF"><span class="nav-number">1.6.6.1.</span> <span class="nav-text">完整 RAG 链路</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%87%E6%A1%A3%E5%88%87%E5%88%86%E4%B8%8E%E5%90%91%E9%87%8F%E5%8C%96"><span class="nav-number">1.6.6.2.</span> <span class="nav-text">文档切分与向量化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A3%80%E7%B4%A2%E5%9B%9E%E7%AD%94"><span class="nav-number">1.6.6.3.</span> <span class="nav-text">检索回答</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-7-%E5%87%BA%E8%A1%8C%E6%A8%A1%E5%9D%97%EF%BC%88MCP-%E5%8D%8F%E8%AE%AE%E6%8E%A5%E5%85%A5%E5%9C%B0%E5%9B%BE%E5%B7%A5%E5%85%B7%EF%BC%89"><span class="nav-number">1.6.7.</span> <span class="nav-text">5.7 出行模块（MCP 协议接入地图工具）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#MCP-%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-number">1.6.7.1.</span> <span class="nav-text">MCP 是什么</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AD%E3%80%81%E8%BF%90%E8%A1%8C%E4%B8%8E%E6%B5%8B%E8%AF%95%E6%B5%81%E7%A8%8B"><span class="nav-number">1.7.</span> <span class="nav-text">六、运行与测试流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-1-%E5%90%AF%E5%8A%A8%E5%91%BD%E4%BB%A4"><span class="nav-number">1.7.1.</span> <span class="nav-text">6.1 启动命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-2-%E7%8E%AF%E5%A2%83%E5%88%87%E6%8D%A2"><span class="nav-number">1.7.2.</span> <span class="nav-text">6.2 环境切换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E7%94%A8%E4%BE%8B"><span class="nav-number">1.7.3.</span> <span class="nav-text">6.3 接口测试用例</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%94%A8%E4%BE%8B-1%EF%BC%9A%E7%94%A8%E6%88%B7%E7%99%BB%E5%BD%95"><span class="nav-number">1.7.3.1.</span> <span class="nav-text">用例 1：用户登录</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%94%A8%E4%BE%8B-2%EF%BC%9A%E9%80%9A%E7%94%A8%E5%AF%B9%E8%AF%9D%EF%BC%88%E6%B5%81%E5%BC%8F%EF%BC%89"><span class="nav-number">1.7.3.2.</span> <span class="nav-text">用例 2：通用对话（流式）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%94%A8%E4%BE%8B-3%EF%BC%9A%E5%8C%BB%E7%96%97%E5%AF%B9%E8%AF%9D"><span class="nav-number">1.7.3.3.</span> <span class="nav-text">用例 3：医疗对话</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%94%A8%E4%BE%8B-4%EF%BC%9APDF-%E4%B8%8A%E4%BC%A0%E4%B8%8E%E9%97%AE%E7%AD%94"><span class="nav-number">1.7.3.4.</span> <span class="nav-text">用例 4：PDF 上传与问答</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-4-%E6%8E%A5%E5%8F%A3%E6%B8%85%E5%8D%95"><span class="nav-number">1.7.4.</span> <span class="nav-text">6.4 接口清单</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-5-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95"><span class="nav-number">1.7.5.</span> <span class="nav-text">6.5 自动化测试</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-6-%E9%AA%8C%E8%AF%81%E6%88%90%E5%8A%9F%E6%A0%87%E5%87%86"><span class="nav-number">1.7.6.</span> <span class="nav-text">6.6 验证成功标准</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%83%E3%80%81%E4%B8%9A%E5%8A%A1%E8%AF%A6%E7%BB%86%E6%B5%81%E7%A8%8B"><span class="nav-number">1.8.</span> <span class="nav-text">七、业务详细流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#7-1-%E7%94%A8%E6%88%B7%E7%99%BB%E5%BD%95%E6%B5%81%E7%A8%8B"><span class="nav-number">1.8.1.</span> <span class="nav-text">7.1 用户登录流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-2-%E4%B8%80%E6%AC%A1%E6%B5%81%E5%BC%8F%E5%AF%B9%E8%AF%9D%E7%9A%84%E5%AE%8C%E6%95%B4%E6%B5%81%E7%A8%8B"><span class="nav-number">1.8.2.</span> <span class="nav-text">7.2 一次流式对话的完整流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-3-%E5%8C%BB%E7%96%97%E9%97%AE%E7%AD%94%E9%98%B2%E5%B9%BB%E8%A7%89%E6%B5%81%E7%A8%8B"><span class="nav-number">1.8.3.</span> <span class="nav-text">7.3 医疗问答防幻觉流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-4-PDF-RAG-%E9%97%AE%E7%AD%94%E6%B5%81%E7%A8%8B"><span class="nav-number">1.8.4.</span> <span class="nav-text">7.4 PDF RAG 问答流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-5-%E6%95%B0%E6%8D%AE%E6%B5%81%E8%BD%AC%E6%B1%87%E6%80%BB"><span class="nav-number">1.8.5.</span> <span class="nav-text">7.5 数据流转汇总</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AB%E3%80%81%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E-Troubleshooting"><span class="nav-number">1.9.</span> <span class="nav-text">八、常见问题与 Troubleshooting</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#8-1-%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA%E7%B1%BB"><span class="nav-number">1.9.1.</span> <span class="nav-text">8.1 环境搭建类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-2-%E8%BF%90%E8%A1%8C%E6%97%B6%E7%B1%BB"><span class="nav-number">1.9.2.</span> <span class="nav-text">8.2 运行时类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-3-%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%BB%BA%E8%AE%AE"><span class="nav-number">1.9.3.</span> <span class="nav-text">8.3 性能优化建议</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-4-%E5%AE%89%E5%85%A8%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="nav-number">1.9.4.</span> <span class="nav-text">8.4 安全注意事项</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%99%84%E5%BD%95%EF%BC%9A%E5%85%B3%E9%94%AE%E9%85%8D%E7%BD%AE%E9%80%9F%E6%9F%A5%E8%A1%A8"><span class="nav-number">1.10.</span> <span class="nav-text">附录：关键配置速查表</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">woshiyigedacainiao</p>
+  <div class="site-description" itemprop="description">Java后端学习笔记、项目踩坑总结</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/myblog/archives/">
+          <span class="site-state-item-count">22</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://woshiyigedacainiao.github.io/myblog/2026/09/07/%E9%A1%B9%E7%9B%AE%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/myblog/images/avatar.gif">
+      <meta itemprop="name" content="woshiyigedacainiao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我的Java学习博客">
+      <meta itemprop="description" content="Java后端学习笔记、项目踩坑总结">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="高星RAG的技术文档 | 我的Java学习博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          高星RAG的技术文档
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-09-07 12:30:53 / 修改时间：12:35:36" itemprop="dateCreated datePublished" datetime="2026-09-07T12:30:53+08:00">2026-09-07</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="AIHub-智能-AI-助手平台-——-技术文档"><a href="#AIHub-智能-AI-助手平台-——-技术文档" class="headerlink" title="AIHub 智能 AI 助手平台 —— 技术文档"></a>AIHub 智能 AI 助手平台 —— 技术文档</h1><blockquote>
+<p>本文档面向零基础学习者，从零开始讲解项目架构、技术选型、环境搭建、模块实现与运行测试，配合真实代码与流程图，确保读者能独立完成项目本地运行。</p>
+</blockquote>
+<hr>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#%E4%B8%80%E9%A1%B9%E7%9B%AE%E8%83%8C%E6%99%AF%E4%B8%8E%E7%9B%AE%E6%A0%87">一、项目背景与目标</a></li>
+<li><a href="#%E4%BA%8C%E6%8A%80%E6%9C%AF%E6%A0%88%E9%80%89%E5%9E%8B%E5%8F%8A%E7%90%86%E7%94%B1">二、技术栈选型及理由</a></li>
+<li><a href="#%E4%B8%89%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84%E8%AF%B4%E6%98%8E">三、目录结构说明</a></li>
+<li><a href="#%E5%9B%9B%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA%E6%AD%A5%E9%AA%A4">四、环境搭建步骤</a></li>
+<li><a href="#%E4%BA%94%E6%A0%B8%E5%BF%83%E5%8A%9F%E8%83%BD%E6%A8%A1%E5%9D%97%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86%E4%B8%8E%E4%BB%A3%E7%A0%81%E8%A7%A3%E6%9E%90">五、核心功能模块实现原理与代码解析</a></li>
+<li><a href="#%E5%85%AD%E8%BF%90%E8%A1%8C%E4%B8%8E%E6%B5%8B%E8%AF%95%E6%B5%81%E7%A8%8B">六、运行与测试流程</a></li>
+<li><a href="#%E4%B8%83%E4%B8%9A%E5%8A%A1%E8%AF%A6%E7%BB%86%E6%B5%81%E7%A8%8B">七、业务详细流程</a></li>
+<li><a href="#%E5%85%AB%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E-troubleshooting">八、常见问题与 Troubleshooting</a></li>
+</ul>
+<hr>
+<h2 id="一、项目背景与目标"><a href="#一、项目背景与目标" class="headerlink" title="一、项目背景与目标"></a>一、项目背景与目标</h2><h3 id="1-1-项目背景"><a href="#1-1-项目背景" class="headerlink" title="1.1 项目背景"></a>1.1 项目背景</h3><p>大语言模型（LLM，如通义千问、GPT）具备强大的自然语言理解与生成能力，但直接使用存在三个痛点：</p>
+<ol>
+<li><strong>知识盲区</strong>：大模型的训练数据有截止时间，对实时信息（如今天天气、近期新闻）和私有数据（如用户自己的 PDF 文档）无法准确回答；</li>
+<li><strong>幻觉问题</strong>：大模型会”一本正经地胡说八道”，在医疗、法律等严肃场景后果严重；</li>
+<li><strong>能力单一</strong>：纯对话无法完成查路线、查地图、操作文件等实际任务。</li>
+</ol>
+<p>AIHub 项目就是为解决上述问题而生的 <strong>AI 助手后端平台</strong>，通过工程手段（RAG 检索增强、Function Calling 函数调用、知识图谱、MCP 协议等）把大模型的”通用对话能力”增强为”能查数据、能查文档、能调工具”的实用助手。</p>
+<h3 id="1-2-目标用户"><a href="#1-2-目标用户" class="headerlink" title="1.2 目标用户"></a>1.2 目标用户</h3><ul>
+<li>想学习 Spring Boot + AI 大模型应用开发的 Java 学习者；</li>
+<li>想把大模型落地到真实业务场景的开发者；</li>
+<li>面试中需要展示 AI 项目经验的求职者。</li>
+</ul>
+<h3 id="1-3-解决的核心问题-对应方案"><a href="#1-3-解决的核心问题-对应方案" class="headerlink" title="1.3 解决的核心问题 &amp; 对应方案"></a>1.3 解决的核心问题 &amp; 对应方案</h3><table>
+<thead>
+<tr>
+<th>痛点</th>
+<th>解决方案</th>
+<th>对应模块</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>大模型不知道实时信息</td>
+<td>联网搜索（WebSearchTool）</td>
+<td>通用对话模块</td>
+</tr>
+<tr>
+<td>大模型回答长文本等待久</td>
+<td>SSE 流式输出（Flux + TokenStream）</td>
+<td>全部对话模块</td>
+</tr>
+<tr>
+<td>大模型瞎编医疗答案</td>
+<td>Neo4j 知识图谱 + Function Calling，答案严格来自图谱查询</td>
+<td>医疗模块</td>
+</tr>
+<tr>
+<td>大模型读不了私有文档</td>
+<td>RAG：PDF 切分 → 向量化 → PgVector 相似度检索</td>
+<td>PDF 模块</td>
+</tr>
+<tr>
+<td>大模型不会查地图&#x2F;路线</td>
+<td>MCP 协议接入独立地图工具服务</td>
+<td>出行模块</td>
+</tr>
+<tr>
+<td>多轮对话重启丢失</td>
+<td>自定义 ChatMemoryStore，对话记忆落库 MySQL</td>
+<td>全部模块</td>
+</tr>
+<tr>
+<td>用户身份识别</td>
+<td>JWT 无状态认证 + ThreadLocal 传递用户上下文</td>
+<td>用户模块</td>
+</tr>
+</tbody></table>
+<h3 id="1-4-功能目标"><a href="#1-4-功能目标" class="headerlink" title="1.4 功能目标"></a>1.4 功能目标</h3><ul>
+<li>通用 AI 对话（支持联网搜索、流式输出、多轮记忆）；</li>
+<li>医疗知识问答（基于 Neo4j 图谱，防幻觉）；</li>
+<li>PDF 文档智能问答（基于 RAG）；</li>
+<li>出行规划（基于 MCP 地图工具）；</li>
+<li>用户登录鉴权。</li>
+</ul>
+<hr>
+<h2 id="二、技术栈选型及理由"><a href="#二、技术栈选型及理由" class="headerlink" title="二、技术栈选型及理由"></a>二、技术栈选型及理由</h2><blockquote>
+<p>说明：项目是<strong>纯后端</strong>项目，前端不在本仓库。技术栈以 Java 后端为核心。</p>
+</blockquote>
+<h3 id="2-1-完整技术栈清单"><a href="#2-1-完整技术栈清单" class="headerlink" title="2.1 完整技术栈清单"></a>2.1 完整技术栈清单</h3><table>
+<thead>
+<tr>
+<th>分类</th>
+<th>技术</th>
+<th>版本</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>开发语言</td>
+<td><strong>Java</strong></td>
+<td>21</td>
+<td>后端主语言</td>
+</tr>
+<tr>
+<td>核心框架</td>
+<td><strong>Spring Boot</strong></td>
+<td>3.4.4</td>
+<td>应用脚手架、自动配置</td>
+</tr>
+<tr>
+<td>Web 框架</td>
+<td>Spring Web MVC + WebFlux</td>
+<td>随 Boot</td>
+<td>REST 接口 + Reactor Flux 流式响应</td>
+</tr>
+<tr>
+<td>AI 框架</td>
+<td>LangChain4j</td>
+<td>1.0.0-beta2</td>
+<td>大模型应用开发（AiServices、流式、记忆、RAG、工具调用、MCP）</td>
+</tr>
+<tr>
+<td>大模型</td>
+<td>通义千问 DashScope</td>
+<td>qwen-max &#x2F; text-embedding-v3</td>
+<td>对话模型 + 向量化模型</td>
+</tr>
+<tr>
+<td>关系数据库</td>
+<td>MySQL</td>
+<td>8.x</td>
+<td>存储用户、对话、标题、记忆</td>
+</tr>
+<tr>
+<td>ORM 框架</td>
+<td>MyBatis</td>
+<td>3.0.3</td>
+<td>SQL 映射</td>
+</tr>
+<tr>
+<td>连接池</td>
+<td>Druid</td>
+<td>1.2.22</td>
+<td>数据库连接池</td>
+</tr>
+<tr>
+<td>图数据库</td>
+<td>Neo4j</td>
+<td>4.4.x</td>
+<td>医疗知识图谱存储与查询</td>
+</tr>
+<tr>
+<td>向量数据库</td>
+<td>PgVector</td>
+<td>(PostgreSQL 扩展)</td>
+<td>存储文档向量，RAG 相似度检索</td>
+</tr>
+<tr>
+<td>搜索引擎</td>
+<td>Elasticsearch</td>
+<td>7.12.1（依赖）</td>
+<td>预留向量存储方案</td>
+</tr>
+<tr>
+<td>对象存储</td>
+<td>阿里云 OSS</td>
+<td>3.17.4</td>
+<td>存储上传的 PDF 文件</td>
+</tr>
+<tr>
+<td>认证</td>
+<td>JWT（jjwt）</td>
+<td>0.9.1</td>
+<td>无状态登录</td>
+</tr>
+<tr>
+<td>工具库</td>
+<td>Hutool &#x2F; Fastjson2 &#x2F; Lombok</td>
+<td>5.8.26 &#x2F; 2.0.52</td>
+<td>工具方法 &#x2F; JSON &#x2F; 代码简化</td>
+</tr>
+<tr>
+<td>文档解析</td>
+<td>Apache PDFBox &#x2F; POI</td>
+<td>随 langchain4j</td>
+<td>解析 PDF &#x2F; Office 文档</td>
+</tr>
+<tr>
+<td>构建工具</td>
+<td>Maven</td>
+<td>随 Boot</td>
+<td>依赖管理与打包</td>
+</tr>
+</tbody></table>
+<h3 id="2-2-关键技术选型理由"><a href="#2-2-关键技术选型理由" class="headerlink" title="2.2 关键技术选型理由"></a>2.2 关键技术选型理由</h3><h4 id="为什么选-Spring-Boot？"><a href="#为什么选-Spring-Boot？" class="headerlink" title="为什么选 Spring Boot？"></a>为什么选 Spring Boot？</h4><ul>
+<li><strong>约定优于配置</strong>：自动装配（AutoConfiguration）让你不用手写一堆 XML 配置，开箱即用；</li>
+<li><strong>生态完整</strong>：Web、数据访问、安全、测试等 starter 一键引入；</li>
+<li><strong>对比</strong>：传统 Spring MVC 需要大量 XML&#x2F;注解配置，启动慢、学习曲线陡；Spring Boot 把这些都封装好了。</li>
+</ul>
+<h4 id="为什么选-LangChain4j-而不是直接调用大模型-API？"><a href="#为什么选-LangChain4j-而不是直接调用大模型-API？" class="headerlink" title="为什么选 LangChain4j 而不是直接调用大模型 API？"></a>为什么选 LangChain4j 而不是直接调用大模型 API？</h4><ul>
+<li>直接调 API 需要自己写：请求封装、流式解析、对话历史管理、提示词拼接、函数调用编排；</li>
+<li>LangChain4j 提供 <strong>AiServices 声明式接口</strong>（类似 Spring Data JPA，写个接口就有 AI 能力）、<strong>ChatMemory</strong> 对话记忆、<strong>@Tool</strong> 函数调用、<strong>RAG 检索器</strong>、<strong>MCP 客户端</strong>等高阶抽象；</li>
+<li>一句话：LangChain4j 是”Java 版的 LangChain”，把大模型应用开发从”手搓 HTTP”提升到”面向接口编程”。</li>
+</ul>
+<h4 id="为什么用-Neo4j-存医疗数据而不是-MySQL？"><a href="#为什么用-Neo4j-存医疗数据而不是-MySQL？" class="headerlink" title="为什么用 Neo4j 存医疗数据而不是 MySQL？"></a>为什么用 Neo4j 存医疗数据而不是 MySQL？</h4><ul>
+<li>医疗数据是”实体 + 关系”网络（疾病-症状-药品-食物），关系多跳且深度不定；</li>
+<li>MySQL 多跳关系要多次 JOIN，表越大越慢；Neo4j 是<strong>原生图数据库</strong>，关系以”指针”存储，遍历只跟查到的节点数有关；</li>
+<li>查询语言 Cypher 直观，如：<code>MATCH (d:Disease)-[:has_symptom]-&gt;(s:Symptom) WHERE s.name IN $symptoms RETURN d</code>。</li>
+</ul>
+<h4 id="为什么用-PgVector-做向量检索？"><a href="#为什么用-PgVector-做向量检索？" class="headerlink" title="为什么用 PgVector 做向量检索？"></a>为什么用 PgVector 做向量检索？</h4><ul>
+<li>大模型的 RAG 需要”语义相似度”检索，传统 LIKE 是字面匹配做不到；</li>
+<li>PgVector 是 PostgreSQL 的向量扩展，<strong>部署简单</strong>（装个扩展就行）、支持余弦&#x2F;内积&#x2F;欧氏距离、SQL 原生查询；</li>
+<li>对比 Milvus&#x2F;Qdrant：PgVector 适合中小规模，无需额外维护一个向量数据库服务。</li>
+</ul>
+<h4 id="为什么用-JWT-而不是-Session？"><a href="#为什么用-JWT-而不是-Session？" class="headerlink" title="为什么用 JWT 而不是 Session？"></a>为什么用 JWT 而不是 Session？</h4><ul>
+<li>JWT 无状态，服务端不存 Session，天然支持多实例部署、水平扩展；</li>
+<li>对比 Session：Session 需要服务端存储，分布式下还要共享（Redis），JWT 把状态放 Token 里，服务端只做验签。</li>
+</ul>
+<hr>
+<h2 id="三、目录结构说明"><a href="#三、目录结构说明" class="headerlink" title="三、目录结构说明"></a>三、目录结构说明</h2><h3 id="3-1-完整目录树"><a href="#3-1-完整目录树" class="headerlink" title="3.1 完整目录树"></a>3.1 完整目录树</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line">AIHub-Backend/</span><br><span class="line">├── pom.xml                              # Maven 项目配置（依赖、版本）</span><br><span class="line">└── src/main/</span><br><span class="line">    ├── java/com/dai/</span><br><span class="line">    │   ├── AiHubBackendApplication.java # 启动类（main 方法入口）</span><br><span class="line">    │   ├── config/                      # 配置类（AI 助手装配、拦截器注册等）</span><br><span class="line">    │   │   ├── ChatAssistantConfig.java       # 通用对话 + 联网搜索 AI 助手</span><br><span class="line">    │   │   ├── MedicalAssistantConfig.java    # 医疗 AI 助手（挂载 MedicalTool）</span><br><span class="line">    │   │   ├── PdfAssistantConfig.java        # PDF RAG AI 助手（挂载向量检索器）</span><br><span class="line">    │   │   ├── TravelAssistantConfig.java     # 出行 AI 助手（挂载 MCP 工具）</span><br><span class="line">    │   │   ├── TitleAssistantConfig.java      # 标题生成 AI 助手</span><br><span class="line">    │   │   ├── EmbeddingStoreConfig.java      # PgVector 向量存储 Bean</span><br><span class="line">    │   │   ├── PersistentChatMemoryStore.java # 对话记忆持久化（实现 ChatMemoryStore）</span><br><span class="line">    │   │   └── WebMvcConfiguration.java       # 注册 JWT 拦截器</span><br><span class="line">    │   ├── constant/                    # 常量</span><br><span class="line">    │   │   └── SystemMessages.java           # 各场景大模型系统提示词</span><br><span class="line">    │   ├── controller/                  # 控制层（接收 HTTP 请求）</span><br><span class="line">    │   │   ├── ChatController.java</span><br><span class="line">    │   │   ├── MedicalController.java</span><br><span class="line">    │   │   ├── PdfController.java</span><br><span class="line">    │   │   ├── TravelController.java</span><br><span class="line">    │   │   └── UserController.java</span><br><span class="line">    │   ├── dto/                         # 数据传输对象（请求参数）</span><br><span class="line">    │   │   ├── ChatDto.java                  # 对话请求（memoryId、message、isOnlineSearch）</span><br><span class="line">    │   │   ├── FileDto.java                  # 文件上传请求</span><br><span class="line">    │   │   └── UserDto.java                  # 登录请求</span><br><span class="line">    │   ├── entity/                      # 实体（数据库行映射）</span><br><span class="line">    │   │   ├── History.java</span><br><span class="line">    │   │   ├── Title.java</span><br><span class="line">    │   │   ├── File.java</span><br><span class="line">    │   │   ├── Result.java                   # 统一响应体</span><br><span class="line">    │   │   ├── ToolResult.java               # 工具调用返回体（给大模型看）</span><br><span class="line">    │   │   └── ...</span><br><span class="line">    │   ├── intercept/                   # 拦截器</span><br><span class="line">    │   │   └── UserTokenIntercept.java       # JWT 鉴权拦截器</span><br><span class="line">    │   ├── mapper/                      # MyBatis Mapper 接口</span><br><span class="line">    │   │   ├── ChatMapper.java / MedicalMapper.java / ...</span><br><span class="line">    │   │   └── MemoryMapper.java             # 对话记忆 CRUD</span><br><span class="line">    │   ├── node/                        # Neo4j 节点实体</span><br><span class="line">    │   │   ├── Disease.java / Symptom.java / Drug.java / Food.java / Check.java</span><br><span class="line">    │   ├── properties/                  # @ConfigurationProperties 配置绑定</span><br><span class="line">    │   │   ├── JwtTokenManagerProperties.java</span><br><span class="line">    │   │   ├── AliOSSProperties.java</span><br><span class="line">    │   │   ├── MapMcpProperties.java</span><br><span class="line">    │   │   └── PdfProperties.java</span><br><span class="line">    │   ├── repository/                  # Neo4j Repository（Spring Data Neo4j）</span><br><span class="line">    │   │   └── DiseaseRepository.java        # 10 条 Cypher 查询</span><br><span class="line">    │   ├── service/                     # 业务层接口</span><br><span class="line">    │   │   └── impl/                    # 业务层实现</span><br><span class="line">    │   ├── tool/                        # 大模型可调用工具（@Tool）</span><br><span class="line">    │   │   └── MedicalTool.java              # 10 个医疗工具</span><br><span class="line">    │   ├── utils/                       # 工具类</span><br><span class="line">    │   │   ├── JwtUtil.java                  # JWT 签发/解析</span><br><span class="line">    │   │   ├── UserThreadLocal.java          # 线程上下文（存当前用户）</span><br><span class="line">    │   │   └── AliOSSUtils.java              # OSS 上传</span><br><span class="line">    │   └── vo/                          # 视图对象（响应数据）</span><br><span class="line">    │       ├── UserVo.java / HistoryVo.java / TitleVo.java / PDFHistoryVo.java</span><br><span class="line">    └── resources/</span><br><span class="line">        ├── application.yml              # 主配置文件</span><br><span class="line">        ├── Dockerfile                   # 容器构建脚本</span><br><span class="line">        ├── mapper/*.xml                 # MyBatis SQL 映射文件</span><br><span class="line">        ├── mcp/Mcp-0.0.1-SNAPSHOT.jar   # MCP 地图工具服务（独立 jar）</span><br><span class="line">        ├── neo4j/                       # Neo4j 数据导入脚本</span><br><span class="line">        │   ├── build_medicalgraph.py</span><br><span class="line">        │   └── medical.json</span><br><span class="line">        └── sql/sql脚本.sql              # MySQL 建表脚本</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-分层调用关系"><a href="#3-2-分层调用关系" class="headerlink" title="3.2 分层调用关系"></a>3.2 分层调用关系</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">浏览器/前端</span><br><span class="line">    │  HTTP 请求</span><br><span class="line">    ▼</span><br><span class="line">Controller（接收参数、返回 Result）</span><br><span class="line">    │  调用</span><br><span class="line">    ▼</span><br><span class="line">Service（业务逻辑编排：调 AI 助手、调 Mapper、调工具）</span><br><span class="line">    │  调用                    │  调用</span><br><span class="line">    ▼                          ▼</span><br><span class="line">Mapper（MyBatis 操作 MySQL）   AI 助手（LangChain4j AiServices）</span><br><span class="line">                                │  内部可调用</span><br><span class="line">                                ▼</span><br><span class="line">                           @Tool 工具 / MCP 工具 / 向量检索器</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>Controller → Service</strong>：Controller 只做参数接收和响应包装，不写业务；</li>
+<li><strong>Service → Mapper</strong>：Service 通过 Mapper 访问 MySQL；</li>
+<li><strong>Service → AI 助手</strong>：Service 调用 LangChain4j 的 AiServices 接口（如 <code>chatAssistant.chat(...)</code>），框架内部自动调大模型；</li>
+<li><strong>AI 助手 → 工具</strong>：大模型决定调用 <code>@Tool</code> 方法或 MCP 工具，框架反射执行后把结果回传大模型。</li>
+</ul>
+<hr>
+<h2 id="四、环境搭建步骤"><a href="#四、环境搭建步骤" class="headerlink" title="四、环境搭建步骤"></a>四、环境搭建步骤</h2><h3 id="4-1-软硬件要求"><a href="#4-1-软硬件要求" class="headerlink" title="4.1 软硬件要求"></a>4.1 软硬件要求</h3><table>
+<thead>
+<tr>
+<th>软件</th>
+<th>版本要求</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>JDK</td>
+<td><strong>21</strong>（必须）</td>
+<td>运行 Java 代码</td>
+</tr>
+<tr>
+<td>Maven</td>
+<td>3.6+</td>
+<td>依赖管理（或用 IDE 内置）</td>
+</tr>
+<tr>
+<td>MySQL</td>
+<td>8.x</td>
+<td>关系数据库</td>
+</tr>
+<tr>
+<td>Neo4j</td>
+<td>4.4.x</td>
+<td>图数据库</td>
+</tr>
+<tr>
+<td>PostgreSQL + PgVector</td>
+<td>15+ &#x2F; 0.5+</td>
+<td>向量数据库（PDF 模块用）</td>
+</tr>
+<tr>
+<td>阿里云 OSS</td>
+<td>-</td>
+<td>文件存储（需账号）</td>
+</tr>
+<tr>
+<td>通义千问 API Key</td>
+<td>-</td>
+<td>大模型调用（需阿里云账号申请）</td>
+</tr>
+<tr>
+<td>IDE</td>
+<td>IntelliJ IDEA（推荐）</td>
+<td>开发</td>
+</tr>
+</tbody></table>
+<h3 id="4-2-安装基础依赖（Windows-为例）"><a href="#4-2-安装基础依赖（Windows-为例）" class="headerlink" title="4.2 安装基础依赖（Windows 为例）"></a>4.2 安装基础依赖（Windows 为例）</h3><h4 id="①-安装-JDK-21"><a href="#①-安装-JDK-21" class="headerlink" title="① 安装 JDK 21"></a>① 安装 JDK 21</h4><ol>
+<li>下载：<a target="_blank" rel="noopener" href="https://adoptium.net/temurin/releases/?version=21">https://adoptium.net/temurin/releases/?version=21</a>（选 Windows x64 .msi）；</li>
+<li>安装后验证：打开 <strong>新的</strong> PowerShell 执行 <code>java -version</code>，应输出 <code>openjdk version &quot;21.x.x&quot;</code>；</li>
+<li>若提示找不到命令，需配置环境变量：<code>JAVA_HOME</code> 指向 JDK 安装目录，<code>Path</code> 追加 <code>%JAVA_HOME%\bin</code>。</li>
+</ol>
+<h4 id="②-安装-MySQL-8"><a href="#②-安装-MySQL-8" class="headerlink" title="② 安装 MySQL 8"></a>② 安装 MySQL 8</h4><ol>
+<li>下载：<a target="_blank" rel="noopener" href="https://dev.mysql.com/downloads/installer/">https://dev.mysql.com/downloads/installer/</a>；</li>
+<li>安装时设置 root 密码（<strong>请记牢</strong>，后面配置要用）；</li>
+<li>验证：<code>mysql -u root -p</code> 能登录。</li>
+</ol>
+<h4 id="③-安装-Neo4j"><a href="#③-安装-Neo4j" class="headerlink" title="③ 安装 Neo4j"></a>③ 安装 Neo4j</h4><p>方式一（Docker，推荐）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">docker run -d --name neo4j \</span><br><span class="line">  -p 7474:7474 -p 7687:7687 \</span><br><span class="line">  -e NEO4J_AUTH=neo4j/你的密码 \</span><br><span class="line">  neo4j:4.4.2-community</span><br></pre></td></tr></table></figure>
+
+<p>方式二（安装包）：下载 <a target="_blank" rel="noopener" href="https://neo4j.com/download/">https://neo4j.com/download/</a> 社区版，解压后运行 <code>bin/neo4j console</code>。</p>
+<p>首次访问 <code>http://localhost:7474</code>，用 <code>neo4j/你设的密码</code> 登录，会强制改密。</p>
+<h4 id="④-安装-PostgreSQL-PgVector"><a href="#④-安装-PostgreSQL-PgVector" class="headerlink" title="④ 安装 PostgreSQL + PgVector"></a>④ 安装 PostgreSQL + PgVector</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Docker 一键启动（含 pgvector）</span></span><br><span class="line">docker run -d --name pgvector \</span><br><span class="line">  -p 5432:5432 \</span><br><span class="line">  -e POSTGRES_PASSWORD=你的密码 \</span><br><span class="line">  -e POSTGRES_DB=aihub_pg \</span><br><span class="line">  pgvector/pgvector:pg16</span><br></pre></td></tr></table></figure>
+
+<p>进入后创建扩展：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> EXTENSION IF <span class="keyword">NOT</span> <span class="keyword">EXISTS</span> vector;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-3-克隆项目并初始化"><a href="#4-3-克隆项目并初始化" class="headerlink" title="4.3 克隆项目并初始化"></a>4.3 克隆项目并初始化</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> &lt;你的仓库地址&gt;</span><br><span class="line"><span class="built_in">cd</span> AIHub-Backend</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-4-初始化数据库"><a href="#4-4-初始化数据库" class="headerlink" title="4.4 初始化数据库"></a>4.4 初始化数据库</h3><h4 id="①-MySQL-建库建表"><a href="#①-MySQL-建库建表" class="headerlink" title="① MySQL 建库建表"></a>① MySQL 建库建表</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> DATABASE aihub <span class="keyword">DEFAULT</span> <span class="keyword">CHARACTER SET</span> utf8mb4;</span><br><span class="line">USE aihub;</span><br><span class="line"><span class="comment">-- 然后执行 src/main/resources/sql/sql脚本.sql 全部内容</span></span><br></pre></td></tr></table></figure>
+
+<p>也可以在 IDE 里打开 <code>sql脚本.sql</code> 直接执行。</p>
+<h4 id="②-Neo4j-导入医疗知识图谱"><a href="#②-Neo4j-导入医疗知识图谱" class="headerlink" title="② Neo4j 导入医疗知识图谱"></a>② Neo4j 导入医疗知识图谱</h4><ol>
+<li>安装 Python 3.8+ 和依赖：<code>pip install py2neo</code>；</li>
+<li>打开 <code>src/main/resources/neo4j/build_medicalgraph.py</code>，修改顶部三个变量：</li>
+</ol>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">data_path = <span class="string">&quot;medical.json&quot;</span>          <span class="comment"># 同目录下的医疗数据</span></span><br><span class="line">neo4j_username = <span class="string">&quot;neo4j&quot;</span></span><br><span class="line">neo4j_password = <span class="string">&quot;你刚才设的密码&quot;</span></span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>运行：<code>python build_medicalgraph.py</code>，等待导入完成（会打印进度）。</li>
+</ol>
+<h3 id="4-5-配置文件详解"><a href="#4-5-配置文件详解" class="headerlink" title="4.5 配置文件详解"></a>4.5 配置文件详解</h3><p>打开 <code>src/main/resources/application.yml</code>，逐项修改：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">datasource:</span></span><br><span class="line">    <span class="attr">url:</span> <span class="string">jdbc:mysql://127.0.0.1:3306/aihub?...</span>   <span class="comment"># 改库名（默认 aihub）</span></span><br><span class="line">    <span class="attr">username:</span> <span class="string">root</span>                                 <span class="comment"># 改你的 MySQL 用户名</span></span><br><span class="line">    <span class="attr">password:</span> <span class="string">你的MySQL密码</span>                         <span class="comment"># 改你的 MySQL 密码</span></span><br><span class="line">  <span class="attr">neo4j:</span></span><br><span class="line">    <span class="attr">uri:</span> <span class="string">bolt://localhost:7687</span></span><br><span class="line">    <span class="attr">authentication:</span></span><br><span class="line">      <span class="attr">username:</span> <span class="string">neo4j</span></span><br><span class="line">      <span class="attr">password:</span> <span class="string">你的Neo4j密码</span>                       <span class="comment"># 改你的 Neo4j 密码</span></span><br><span class="line"></span><br><span class="line"><span class="attr">langchain4j:</span></span><br><span class="line">  <span class="attr">community:</span></span><br><span class="line">    <span class="attr">dashscope:</span></span><br><span class="line">      <span class="attr">chat-model:</span></span><br><span class="line">        <span class="attr">api-key:</span> <span class="string">$&#123;ALI_API_KEY:&#125;</span>     <span class="comment"># 通义千问 API Key（见 4.6）</span></span><br><span class="line">      <span class="attr">streaming-chat-model:</span></span><br><span class="line">        <span class="attr">api-key:</span> <span class="string">$&#123;ALI_API_KEY:&#125;</span></span><br><span class="line">      <span class="attr">embedding-model:</span></span><br><span class="line">        <span class="attr">api-key:</span> <span class="string">$&#123;ALI_API_KEY:&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">dai:</span></span><br><span class="line">  <span class="attr">api:</span></span><br><span class="line">    <span class="attr">amap-api:</span> <span class="string">$&#123;AMAP_API_KEY:&#125;</span>        <span class="comment"># 高德地图 Key（出行模块用，没有可留空）</span></span><br><span class="line">    <span class="attr">baidu-api:</span> <span class="string">$&#123;BAIDU_MAP_API_KEY:&#125;</span>  <span class="comment"># 百度地图 Key</span></span><br><span class="line">    <span class="attr">mcp-server:</span> <span class="string">&quot;D:\\AIHub\\Mcp\\target\\Mcp-0.0.1-SNAPSHOT.jar&quot;</span>  <span class="comment"># 改成本机 MCP jar 的真实路径</span></span><br><span class="line">  <span class="attr">pdf:</span></span><br><span class="line">    <span class="comment"># PgVector 连接参数（注意：当前 yml 只配了 host 和 index-name，</span></span><br><span class="line">    <span class="comment"># 实际还需补全 dataBase/table/port/user/password/dimension，见下方说明）</span></span><br><span class="line">    <span class="attr">host:</span> <span class="string">&quot;localhost&quot;</span></span><br><span class="line">    <span class="attr">dataBase:</span> <span class="string">&quot;aihub_pg&quot;</span></span><br><span class="line">    <span class="attr">table:</span> <span class="string">&quot;pdf_embedding&quot;</span></span><br><span class="line">    <span class="attr">port:</span> <span class="number">5432</span></span><br><span class="line">    <span class="attr">user:</span> <span class="string">&quot;postgres&quot;</span></span><br><span class="line">    <span class="attr">password:</span> <span class="string">&quot;你的Pg密码&quot;</span></span><br><span class="line">    <span class="attr">dimension:</span> <span class="number">1024</span>                   <span class="comment"># 通义 text-embedding-v3 输出维度</span></span><br><span class="line"></span><br><span class="line"><span class="attr">aliyun:</span></span><br><span class="line">  <span class="attr">oss:</span></span><br><span class="line">    <span class="attr">endpoint:</span> <span class="string">https://oss-cn-beijing.aliyuncs.com</span></span><br><span class="line">    <span class="attr">accessKeyId:</span> <span class="string">$&#123;OSS_ACCESS_KEY_ID:&#125;</span>      <span class="comment"># 阿里云 AccessKey（PDF 上传用）</span></span><br><span class="line">    <span class="attr">accessKeySecret:</span> <span class="string">$&#123;OSS_ACCESS_KEY_SECRET:&#125;</span></span><br><span class="line">    <span class="attr">bucketName:</span> <span class="string">aihub-dai</span>                   <span class="comment"># 改成你自己的 bucket</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>注意</strong>：原 <code>application.yml</code> 中 <code>dai.pdf</code> 只配了 <code>host</code> 和 <code>index-name</code>，但 <code>PdfProperties</code> 还需要 <code>dataBase/table/port/user/password/dimension</code> 才能让 <code>PgVectorEmbeddingStore</code> 正常连接。请按上方补充完整，否则 PDF 模块会报空指针。</p>
+</blockquote>
+<h3 id="4-6-配置-API-Key（环境变量方式，推荐）"><a href="#4-6-配置-API-Key（环境变量方式，推荐）" class="headerlink" title="4.6 配置 API Key（环境变量方式，推荐）"></a>4.6 配置 API Key（环境变量方式，推荐）</h3><p>为避免把密钥写进代码，项目用 <code>${KEY:}</code> 语法从环境变量读取。在 Windows PowerShell 中设置（<strong>当前会话有效</strong>）：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$env:ALI_API_KEY</span>=<span class="string">&quot;sk-你的通义千问key&quot;</span></span><br><span class="line"><span class="variable">$env:OSS_ACCESS_KEY_ID</span>=<span class="string">&quot;你的AK&quot;</span></span><br><span class="line"><span class="variable">$env:OSS_ACCESS_KEY_SECRET</span>=<span class="string">&quot;你的SK&quot;</span></span><br><span class="line"><span class="variable">$env:AMAP_API_KEY</span>=<span class="string">&quot;你的高德key&quot;</span></span><br><span class="line"><span class="variable">$env:BAIDU_MAP_API_KEY</span>=<span class="string">&quot;你的百度key&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>永久生效：<code>系统属性 → 高级 → 环境变量 → 新建用户变量</code>。</p>
+<ul>
+<li>通义千问 Key 申请：<a target="_blank" rel="noopener" href="https://dashscope.console.aliyun.com/">https://dashscope.console.aliyun.com/</a>（开通”通义千问”和”向量模型”服务）；</li>
+<li>阿里云 OSS：<a target="_blank" rel="noopener" href="https://oss.console.aliyun.com/">https://oss.console.aliyun.com/</a> 创建 bucket 并获取 AccessKey；</li>
+<li>高德&#x2F;百度地图 Key：各自开放平台申请（出行模块用）。</li>
+</ul>
+<h3 id="4-7-安装依赖"><a href="#4-7-安装依赖" class="headerlink" title="4.7 安装依赖"></a>4.7 安装依赖</h3><p>在项目根目录执行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvn clean install -DskipTests</span><br></pre></td></tr></table></figure>
+
+<p>或直接在 IDEA 中右键 <code>pom.xml → Maven → Reload Project</code>，让 IDE 自动下载依赖。</p>
+<p><strong>常见问题</strong>：依赖下载慢 → 配置阿里云 Maven 镜像（<code>settings.xml</code> 中加 mirror）：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">mirror</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">id</span>&gt;</span>aliyun<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">mirrorOf</span>&gt;</span>central<span class="tag">&lt;/<span class="name">mirrorOf</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">url</span>&gt;</span>https://maven.aliyun.com/repository/public<span class="tag">&lt;/<span class="name">url</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">mirror</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-8-环境验证"><a href="#4-8-环境验证" class="headerlink" title="4.8 环境验证"></a>4.8 环境验证</h3><ol>
+<li>启动 MySQL、Neo4j、PostgreSQL；</li>
+<li>运行 <code>AiHubBackendApplication.main()</code>；</li>
+<li>控制台出现 <code>Started AiHubBackendApplication</code> 且无报错即成功；</li>
+<li>测试登录接口（见第六章）。</li>
+</ol>
+<hr>
+<h2 id="五、核心功能模块实现原理与代码解析"><a href="#五、核心功能模块实现原理与代码解析" class="headerlink" title="五、核心功能模块实现原理与代码解析"></a>五、核心功能模块实现原理与代码解析</h2><h3 id="5-1-整体架构"><a href="#5-1-整体架构" class="headerlink" title="5.1 整体架构"></a>5.1 整体架构</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">                  ┌─────────────────────────────────────┐</span><br><span class="line">                  │          Spring Boot 应用            │</span><br><span class="line">                  │                                     │</span><br><span class="line">HTTP 请求 ──────► │  Controller（5个）                  │</span><br><span class="line">                  │      │                              │</span><br><span class="line">                  │      ▼                              │</span><br><span class="line">                  │  Service（5个）                     │</span><br><span class="line">                  │      │                              │</span><br><span class="line">                  │      ├──────────────┐               │</span><br><span class="line">                  │      ▼              ▼               │</span><br><span class="line">                  │  Mapper(MyBatis)  AiServices        │</span><br><span class="line">                  │   (MySQL记忆/消息)  (LangChain4j)    │</span><br><span class="line">                  │                      │              │</span><br><span class="line">                  │                      ├─► 通义千问API │</span><br><span class="line">                  │                      ├─► @Tool工具  │──► Neo4j 图谱</span><br><span class="line">                  │                      ├─► MCP工具    │──► 地图服务</span><br><span class="line">                  │                      └─► 向量检索器  │──► PgVector</span><br><span class="line">                  └─────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-2-启动类"><a href="#5-2-启动类" class="headerlink" title="5.2 启动类"></a>5.2 启动类</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// AiHubBackendApplication.java</span></span><br><span class="line"><span class="meta">@SpringBootApplication</span>  <span class="comment">// 三合一：@Configuration + @EnableAutoConfiguration + @ComponentScan</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">AiHubBackendApplication</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="type">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        SpringApplication.run(AiHubBackendApplication.class, args);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>@SpringBootApplication</code> 做三件事：</p>
+<ul>
+<li><code>@EnableAutoConfiguration</code>：触发自动装配（加载 jar 里的 <code>AutoConfiguration.imports</code>）；</li>
+<li><code>@ComponentScan</code>：扫描 <code>com.dai</code> 包下所有 <code>@Component/@Service/@RestController</code> 等，注册为 Bean；</li>
+<li><code>@Configuration</code>：标记为配置类。</li>
+</ul>
+<h3 id="5-3-用户认证模块（JWT-拦截器-ThreadLocal）"><a href="#5-3-用户认证模块（JWT-拦截器-ThreadLocal）" class="headerlink" title="5.3 用户认证模块（JWT + 拦截器 + ThreadLocal）"></a>5.3 用户认证模块（JWT + 拦截器 + ThreadLocal）</h3><h4 id="流程图"><a href="#流程图" class="headerlink" title="流程图"></a>流程图</h4><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">用户登录 → UserController.login → UserServiceImpl.login</span><br><span class="line">  → 查库验证用户名 → 把用户信息放进 JWT claims → 签发 Token 返回前端</span><br><span class="line"></span><br><span class="line">后续请求（带 Authorization 头）</span><br><span class="line">  → UserTokenIntercept.preHandle</span><br><span class="line">  → 解析 JWT 验签 → 把用户 JSON 存入 UserThreadLocal → 放行</span><br><span class="line">  → Controller/Service 通过 UserThreadLocal.getSubject() 取当前用户</span><br><span class="line">  → afterCompletion → UserThreadLocal.remove() 清理</span><br></pre></td></tr></table></figure>
+
+<h4 id="关键代码：JWT-工具"><a href="#关键代码：JWT-工具" class="headerlink" title="关键代码：JWT 工具"></a>关键代码：JWT 工具</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// JwtUtil.java —— 签发 Token</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="type">String</span> <span class="title function_">createJWT</span><span class="params">(String secretKey, <span class="type">int</span> dateOffset, Map&lt;String, Object&gt; claims)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> Jwts.builder()</span><br><span class="line">            .setClaims(claims)                                    <span class="comment">// 载荷：用户信息</span></span><br><span class="line">            .signWith(SignatureAlgorithm.HS256, secretKey.getBytes(StandardCharsets.UTF_8))  <span class="comment">// 签名</span></span><br><span class="line">            .setExpiration(DateUtil.offset(<span class="keyword">new</span> <span class="title class_">Date</span>(), DateField.HOUR_OF_DAY, dateOffset))  <span class="comment">// 过期时间</span></span><br><span class="line">            .compact();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>JWT 三段结构：<code>Header.Payload.Signature</code>。Header 声明算法，Payload 存自定义声明（如 user），Signature 用密钥对前两段签名防篡改。</p>
+</blockquote>
+<h4 id="关键代码：拦截器"><a href="#关键代码：拦截器" class="headerlink" title="关键代码：拦截器"></a>关键代码：拦截器</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// UserTokenIntercept.java</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">preHandle</span><span class="params">(HttpServletRequest request, HttpServletResponse response, Object handler)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">token</span> <span class="operator">=</span> request.getHeader(<span class="string">&quot;Authorization&quot;</span>);</span><br><span class="line">    <span class="keyword">if</span> (token == <span class="literal">null</span> || token.isEmpty()) &#123; response.setStatus(<span class="number">401</span>); <span class="keyword">return</span> <span class="literal">false</span>; &#125;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="type">Claims</span> <span class="variable">claims</span> <span class="operator">=</span> JwtUtil.parseJWT(jwtTokenManagerProperties.getBase64EncodedSecretKey(), token);</span><br><span class="line">        <span class="type">String</span> <span class="variable">jsonStr</span> <span class="operator">=</span> String.valueOf(claims.get(<span class="string">&quot;user&quot;</span>));</span><br><span class="line">        UserThreadLocal.setSubject(jsonStr);   <span class="comment">// 存入线程上下文</span></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        response.setStatus(<span class="number">401</span>); <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">void</span> <span class="title function_">afterCompletion</span><span class="params">(...)</span> &#123;</span><br><span class="line">    UserThreadLocal.removeSubject();   <span class="comment">// 必须清理，否则线程复用会串号 + 内存泄漏</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>ThreadLocal 必须 remove</strong>：Tomcat 线程池复用线程，不清理会导致下一个请求读到上一个用户的数据。</p>
+</blockquote>
+<h3 id="5-4-通用对话模块（流式输出-记忆持久化）"><a href="#5-4-通用对话模块（流式输出-记忆持久化）" class="headerlink" title="5.4 通用对话模块（流式输出 + 记忆持久化）"></a>5.4 通用对话模块（流式输出 + 记忆持久化）</h3><h4 id="核心原理：AiServices-声明式接口"><a href="#核心原理：AiServices-声明式接口" class="headerlink" title="核心原理：AiServices 声明式接口"></a>核心原理：AiServices 声明式接口</h4><p>LangChain4j 的核心思想：<strong>写一个接口，框架用代理帮你实现</strong>。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ChatAssistantConfig.java</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">ChatAssistant</span> &#123;</span><br><span class="line">    <span class="meta">@SystemMessage(SystemMessages.CHAT_SYSTEM_MESSAGE)</span>   <span class="comment">// 系统提示词（人设）</span></span><br><span class="line">    <span class="type">TokenStream</span> <span class="title function_">chat</span><span class="params">(<span class="meta">@MemoryId</span> String id,                 // 会话ID（隔离记忆）</span></span><br><span class="line"><span class="params">                     <span class="meta">@UserMessage</span> String message,         // 用户消息</span></span><br><span class="line"><span class="params">                     <span class="meta">@V(&quot;current_date&quot;)</span> String currentDate)</span>;  <span class="comment">// 模板变量</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">ChatAssistant</span> <span class="title function_">chatAssistant</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">ChatMemoryProvider</span> <span class="variable">provider</span> <span class="operator">=</span> memoryId -&gt; MessageWindowChatMemory</span><br><span class="line">            .builder()</span><br><span class="line">            .id(memoryId)</span><br><span class="line">            .maxMessages(<span class="number">20</span>)                              <span class="comment">// 滑动窗口：只留最近20条</span></span><br><span class="line">            .chatMemoryStore(persistentChatMemoryStore)    <span class="comment">// 记忆持久化</span></span><br><span class="line">            .build();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> AiServices.builder(ChatAssistant.class)</span><br><span class="line">            .streamingChatLanguageModel(model)             <span class="comment">// 流式模型</span></span><br><span class="line">            .chatMemoryProvider(provider)</span><br><span class="line">            .build();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>你调用 <code>chatAssistant.chat(id, msg, date)</code>，框架自动：取历史记忆 → 拼系统提示词 → 调大模型 → 流式返回 token → 更新记忆。</p>
+<h4 id="流式输出桥接"><a href="#流式输出桥接" class="headerlink" title="流式输出桥接"></a>流式输出桥接</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ChatServiceImpl.chatAI()</span></span><br><span class="line"><span class="keyword">return</span> Flux.create(sink -&gt; &#123;</span><br><span class="line">    <span class="type">StringBuilder</span> <span class="variable">responseBuilder</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">StringBuilder</span>(<span class="string">&quot;&lt;p&gt;&quot;</span>);</span><br><span class="line">    chatAssistant.chat(chatDto.getMemoryId(), chatDto.getMessage(), LocalDate.now().toString())</span><br><span class="line">        .onPartialResponse(partial -&gt; &#123;   <span class="comment">// 每收到一个 token</span></span><br><span class="line">            responseBuilder.append(partial);</span><br><span class="line">            sink.next(partial);           <span class="comment">// 推给前端（SSE）</span></span><br><span class="line">        &#125;)</span><br><span class="line">        .onCompleteResponse(complete -&gt; &#123; <span class="comment">// 全部完成</span></span><br><span class="line">            chatMapper.saveHistory(...);  <span class="comment">// 完整回答落库</span></span><br><span class="line">            sink.complete();</span><br><span class="line">        &#125;)</span><br><span class="line">        .onError(sink::error)</span><br><span class="line">        .start();</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>为什么返回 <code>Flux&lt;String&gt;</code>：Spring 对 <code>Flux&lt;String&gt;</code> 自动以 <code>text/event-stream</code> 逐块输出，前端就能实现打字机效果。</p>
+</blockquote>
+<h4 id="记忆持久化"><a href="#记忆持久化" class="headerlink" title="记忆持久化"></a>记忆持久化</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// PersistentChatMemoryStore.java —— 实现 LangChain4j 的 ChatMemoryStore 接口</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">List</span>&lt;ChatMessage&gt; <span class="title function_">getMessages</span><span class="params">(Object o)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">memory</span> <span class="operator">=</span> memoryMapper.getMemory(o.toString());</span><br><span class="line">    <span class="keyword">return</span> ChatMessageDeserializer.messagesFromJson(memory);  <span class="comment">// JSON → 消息列表</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">void</span> <span class="title function_">updateMessages</span><span class="params">(Object o, List&lt;ChatMessage&gt; list)</span> &#123;</span><br><span class="line">    memoryMapper.updateMemory(o.toString(), ChatMessageSerializer.messagesToJson(list));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>这样对话记忆就存进了 MySQL 的 <code>memory</code> 表，应用重启后多轮对话仍可延续。</p>
+</blockquote>
+<h3 id="5-5-医疗模块（Neo4j-Function-Calling-防幻觉）"><a href="#5-5-医疗模块（Neo4j-Function-Calling-防幻觉）" class="headerlink" title="5.5 医疗模块（Neo4j + Function Calling 防幻觉）"></a>5.5 医疗模块（Neo4j + Function Calling 防幻觉）</h3><h4 id="核心思想"><a href="#核心思想" class="headerlink" title="核心思想"></a>核心思想</h4><p>不让大模型自由回答医疗问题，而是让它<strong>只能调用工具查图谱</strong>，答案严格来自查询结果。</p>
+<h4 id="工具定义"><a href="#工具定义" class="headerlink" title="工具定义"></a>工具定义</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// MedicalTool.java</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MedicalTool</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> DiseaseRepository diseaseRepository;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Tool(&quot;根据症状推测疾病&quot;)</span>                              <span class="comment">// 工具描述，大模型据此判断是否调用</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">ToolResult</span>&lt;List&lt;Disease&gt;&gt; <span class="title function_">getDiseasesBySymptom</span><span class="params">(</span></span><br><span class="line"><span class="params">            <span class="meta">@P(&quot;症状&quot;)</span> List&lt;String&gt; Symptom)</span> &#123;            <span class="comment">// @P 是参数描述</span></span><br><span class="line">        <span class="keyword">if</span> (Symptom.size() &lt; <span class="number">2</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> ToolResult.error(<span class="string">&quot;提供的症状信息不足&quot;</span>);   <span class="comment">// 信息不足时引导用户补充</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="type">List</span>&lt;Disease&gt; <span class="variable">diseases</span> <span class="operator">=</span> diseaseRepository.getDiseasesBySymptom(Symptom);</span><br><span class="line">        <span class="keyword">return</span> ToolResult.success(diseases);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// ... 还有 9 个工具：疾病详情、忌吃/推荐食物、常用/好评药、伴随疾病、检查项目等</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="把工具挂到-AI-助手"><a href="#把工具挂到-AI-助手" class="headerlink" title="把工具挂到 AI 助手"></a>把工具挂到 AI 助手</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// MedicalAssistantConfig.java</span></span><br><span class="line"><span class="keyword">return</span> AiServices.builder(MedicalAssistant.class)</span><br><span class="line">        .tools(medicalTool)            <span class="comment">// 挂载医疗工具集</span></span><br><span class="line">        .streamingChatLanguageModel(model)</span><br><span class="line">        .chatMemoryProvider(chatMemoryProvider)</span><br><span class="line">        .build();</span><br></pre></td></tr></table></figure>
+
+<h4 id="Cypher-查询示例"><a href="#Cypher-查询示例" class="headerlink" title="Cypher 查询示例"></a>Cypher 查询示例</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// DiseaseRepository.java</span></span><br><span class="line"><span class="meta">@Query(&quot;MATCH (n:Disease)-[r:has_symptom]-&gt;(m:Symptom) &quot; +</span></span><br><span class="line"><span class="meta">       &quot;WHERE m.name IN $symptoms WITH DISTINCT n RETURN n LIMIT 5&quot;)</span></span><br><span class="line"><span class="type">List</span>&lt;Disease&gt; <span class="title function_">getDiseasesBySymptom</span><span class="params">(<span class="meta">@Param(&quot;symptoms&quot;)</span> List&lt;String&gt; symptoms)</span>;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>大模型收到用户问题 → 判断需要调 <code>getDiseasesBySymptom</code> → 抽取症状参数 → 框架反射调用 → 拿到疾病列表 → 回传大模型 → 大模型组织成自然语言回答。<strong>全程答案来自图谱，无法瞎编</strong>。</p>
+</blockquote>
+<h3 id="5-6-PDF-模块（RAG-检索增强生成）"><a href="#5-6-PDF-模块（RAG-检索增强生成）" class="headerlink" title="5.6 PDF 模块（RAG 检索增强生成）"></a>5.6 PDF 模块（RAG 检索增强生成）</h3><h4 id="完整-RAG-链路"><a href="#完整-RAG-链路" class="headerlink" title="完整 RAG 链路"></a>完整 RAG 链路</h4><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">上传 PDF → 存 OSS → PDFBox 解析文本 → 切分成块 → 向量化 → 存 PgVector</span><br><span class="line">                                                            │</span><br><span class="line">用户提问 ──────────────────────────────────────────────────► 提问向量化</span><br><span class="line">                                                            │</span><br><span class="line">                                                     相似度检索 Top-K</span><br><span class="line">                                                            │</span><br><span class="line">                                                 片段 + 问题 拼进提示词</span><br><span class="line">                                                            │</span><br><span class="line">                                                        大模型回答</span><br></pre></td></tr></table></figure>
+
+<h4 id="文档切分与向量化"><a href="#文档切分与向量化" class="headerlink" title="文档切分与向量化"></a>文档切分与向量化</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// PdfServiceImpl.ingestDocument()</span></span><br><span class="line"><span class="type">Document</span> <span class="variable">document</span> <span class="operator">=</span> UrlDocumentLoader.load(url, <span class="keyword">new</span> <span class="title class_">ApachePdfBoxDocumentParser</span>());</span><br><span class="line"><span class="type">EmbeddingStoreIngestor</span> <span class="variable">ingestor</span> <span class="operator">=</span> EmbeddingStoreIngestor.builder()</span><br><span class="line">        .embeddingStore(embeddingStore)</span><br><span class="line">        .embeddingModel(embeddingModel)</span><br><span class="line">        .documentSplitter(<span class="keyword">new</span> <span class="title class_">DocumentByRegexSplitter</span>(</span><br><span class="line">                <span class="string">&quot;\\n\\d+\\.&quot;</span>,    <span class="comment">// 按&quot;数字.&quot;章节切大块</span></span><br><span class="line">                <span class="string">&quot;\n&quot;</span>,</span><br><span class="line">                <span class="number">80</span>, <span class="number">20</span>,           <span class="comment">// 单块80字符，重叠20字符</span></span><br><span class="line">                <span class="keyword">new</span> <span class="title class_">DocumentByCharacterSplitter</span>(<span class="number">100</span>, <span class="number">20</span>)  <span class="comment">// 兜底：再按100字符切</span></span><br><span class="line">        )).build();</span><br><span class="line">ingestor.ingest(document);</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>双层切分：先按章节语义切，超 80 字符再按字符切，保留 20 字符重叠避免语义被切断。</p>
+</blockquote>
+<h4 id="检索回答"><a href="#检索回答" class="headerlink" title="检索回答"></a>检索回答</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// PdfAssistantConfig.java</span></span><br><span class="line"><span class="type">ContentRetriever</span> <span class="variable">retriever</span> <span class="operator">=</span> EmbeddingStoreContentRetriever.builder()</span><br><span class="line">        .embeddingStore(pgVectorEmbeddingStore)</span><br><span class="line">        .embeddingModel(embeddingModel)</span><br><span class="line">        .maxResults(<span class="number">1</span>)</span><br><span class="line">        .minScore(<span class="number">0.6</span>)    <span class="comment">// 相似度低于 0.6 的片段丢弃（防答非所问）</span></span><br><span class="line">        .build();</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> AiServices.builder(PDFAssistant.class)</span><br><span class="line">        .streamingChatLanguageModel(model)</span><br><span class="line">        .contentRetriever(retriever)   <span class="comment">// 挂载检索器，框架自动做 RAG</span></span><br><span class="line">        .build();</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-7-出行模块（MCP-协议接入地图工具）"><a href="#5-7-出行模块（MCP-协议接入地图工具）" class="headerlink" title="5.7 出行模块（MCP 协议接入地图工具）"></a>5.7 出行模块（MCP 协议接入地图工具）</h3><h4 id="MCP-是什么"><a href="#MCP-是什么" class="headerlink" title="MCP 是什么"></a>MCP 是什么</h4><p>MCP（Model Context Protocol）是让大模型调用<strong>外部独立进程工具</strong>的协议。本项目的地图工具不在 Java 代码里，而是打包成独立 jar（Spring AI 实现），通过标准输入输出（stdio）通信。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// TravelAssistantConfig.java</span></span><br><span class="line"><span class="type">McpTransport</span> <span class="variable">transport</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">StdioMcpTransport</span>.Builder()</span><br><span class="line">        .command(List.of(<span class="string">&quot;java&quot;</span>, <span class="string">&quot;-jar&quot;</span>, mcpProperties.getMcpServer()))</span><br><span class="line">        .environment(Map.of(<span class="string">&quot;AMAP_API_KEY&quot;</span>, mcpProperties.getAmapApi(),</span><br><span class="line">                            <span class="string">&quot;BAIDU_MAP_API_KEY&quot;</span>, mcpProperties.getBaiduApi()))</span><br><span class="line">        .build();</span><br><span class="line"></span><br><span class="line"><span class="type">McpClient</span> <span class="variable">client</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">DefaultMcpClient</span>.Builder().transport(transport).build();</span><br><span class="line"><span class="type">ToolProvider</span> <span class="variable">toolProvider</span> <span class="operator">=</span> McpToolProvider.builder().mcpClients(client).build();</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> AiServices.builder(TravelAssistant.class)</span><br><span class="line">        .toolProvider(toolProvider)   <span class="comment">// 动态发现 MCP 工具（地理编码、路线规划等）</span></span><br><span class="line">        .build();</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>大模型自动编排多工具：如用户问”从北京到上海怎么走”，模型先调”地理编码”把城市转经纬度，再调”驾车路线规划”。</p>
+</blockquote>
+<hr>
+<h2 id="六、运行与测试流程"><a href="#六、运行与测试流程" class="headerlink" title="六、运行与测试流程"></a>六、运行与测试流程</h2><h3 id="6-1-启动命令"><a href="#6-1-启动命令" class="headerlink" title="6.1 启动命令"></a>6.1 启动命令</h3><p><strong>方式一：IDE 启动</strong><br>直接运行 <code>AiHubBackendApplication.main()</code>。</p>
+<p><strong>方式二：命令行启动</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mvn clean package -DskipTests</span><br><span class="line">java -jar target/AIHub-Backend-0.0.1-SNAPSHOT.jar</span><br></pre></td></tr></table></figure>
+
+<p><strong>方式三：指定环境变量启动</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$env</span>:ALI_API_KEY=<span class="string">&quot;sk-xxx&quot;</span>; java -jar target/AIHub-Backend-0.0.1-SNAPSHOT.jar</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-2-环境切换"><a href="#6-2-环境切换" class="headerlink" title="6.2 环境切换"></a>6.2 环境切换</h3><p>项目只有一个 <code>application.yml</code>（默认 default profile）。要分环境，可新建：</p>
+<ul>
+<li><code>application-dev.yml</code>：开发环境配置；</li>
+<li><code>application-prod.yml</code>：生产环境配置。</li>
+</ul>
+<p>启动时指定：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -jar target/AIHub-Backend-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev</span><br></pre></td></tr></table></figure>
+
+<p>或在 <code>application.yml</code> 中加 <code>spring.profiles.active: dev</code>。</p>
+<h3 id="6-3-接口测试用例"><a href="#6-3-接口测试用例" class="headerlink" title="6.3 接口测试用例"></a>6.3 接口测试用例</h3><blockquote>
+<p>以下用 Postman 或 curl 测试。除登录外，所有接口需在 Header 加 <code>Authorization: &lt;token&gt;</code>。</p>
+</blockquote>
+<h4 id="用例-1：用户登录"><a href="#用例-1：用户登录" class="headerlink" title="用例 1：用户登录"></a>用例 1：用户登录</h4><figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">POST http://localhost:8080/login</span><br><span class="line"><span class="attribute">Content-Type</span><span class="punctuation">: </span>application/json</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">  &quot;username&quot;: &quot;admin&quot;,</span><br><span class="line">  &quot;password&quot;: &quot;123456&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>预期响应：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;code&quot;</span><span class="punctuation">:</span> <span class="number">200</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;msg&quot;</span><span class="punctuation">:</span> <span class="string">&quot;操作成功&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;data&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;id&quot;</span><span class="punctuation">:</span> <span class="number">1</span><span class="punctuation">,</span> <span class="attr">&quot;username&quot;</span><span class="punctuation">:</span> <span class="string">&quot;admin&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;token&quot;</span><span class="punctuation">:</span> <span class="string">&quot;eyJhbGciOiJIUzI1NiJ9...&quot;</span> <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="用例-2：通用对话（流式）"><a href="#用例-2：通用对话（流式）" class="headerlink" title="用例 2：通用对话（流式）"></a>用例 2：通用对话（流式）</h4><figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">POST http://localhost:8080/ai/chat</span><br><span class="line"><span class="attribute">Content-Type</span><span class="punctuation">: </span>application/json</span><br><span class="line"><span class="attribute">Authorization</span><span class="punctuation">: </span>&lt;上一步拿到的token&gt;</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">  &quot;memoryId&quot;: &quot;test-session-001&quot;,</span><br><span class="line">  &quot;message&quot;: &quot;你好，请介绍一下你自己&quot;,</span><br><span class="line">  &quot;isOnlineSearch&quot;: false</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>预期：响应为 <code>text/event-stream</code>，逐字返回内容。</p>
+<h4 id="用例-3：医疗对话"><a href="#用例-3：医疗对话" class="headerlink" title="用例 3：医疗对话"></a>用例 3：医疗对话</h4><figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">POST http://localhost:8080/ai/medical</span><br><span class="line"><span class="attribute">Content-Type</span><span class="punctuation">: </span>application/json</span><br><span class="line"><span class="attribute">Authorization</span><span class="punctuation">: </span>&lt;token&gt;</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">  &quot;memoryId&quot;: &quot;med-001&quot;,</span><br><span class="line">  &quot;message&quot;: &quot;头痛、发烧是什么病？&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>预期：模型调用 <code>getDiseasesBySymptom</code> 工具查图谱后回答。</p>
+<h4 id="用例-4：PDF-上传与问答"><a href="#用例-4：PDF-上传与问答" class="headerlink" title="用例 4：PDF 上传与问答"></a>用例 4：PDF 上传与问答</h4><figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">POST http://localhost:8080/ai/pdf/upload</span><br><span class="line"><span class="attribute">Content-Type</span><span class="punctuation">: </span>multipart/form-data</span><br><span class="line"><span class="attribute">Authorization</span><span class="punctuation">: </span>&lt;token&gt;</span><br><span class="line"></span><br><span class="line"><span class="attribute">file</span><span class="punctuation">: </span>选择一个PDF文件</span><br><span class="line"><span class="attribute">fileName</span><span class="punctuation">: </span>测试文档.pdf</span><br><span class="line"><span class="attribute">memoryId</span><span class="punctuation">: </span>pdf-001</span><br></pre></td></tr></table></figure>
+
+<p>然后问答：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">POST http://localhost:8080/ai/pdf</span><br><span class="line"><span class="attribute">Content-Type</span><span class="punctuation">: </span>application/json</span><br><span class="line"><span class="attribute">Authorization</span><span class="punctuation">: </span>&lt;token&gt;</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">  &quot;memoryId&quot;: &quot;pdf-001&quot;,</span><br><span class="line">  &quot;message&quot;: &quot;这篇文档主要讲了什么？&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-4-接口清单"><a href="#6-4-接口清单" class="headerlink" title="6.4 接口清单"></a>6.4 接口清单</h3><table>
+<thead>
+<tr>
+<th>模块</th>
+<th>方法</th>
+<th>路径</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>用户</td>
+<td>POST</td>
+<td><code>/login</code></td>
+<td>登录</td>
+</tr>
+<tr>
+<td>用户</td>
+<td>GET</td>
+<td><code>/user/detail</code></td>
+<td>获取当前用户</td>
+</tr>
+<tr>
+<td>对话</td>
+<td>POST</td>
+<td><code>/ai/chat</code></td>
+<td>流式对话</td>
+</tr>
+<tr>
+<td>对话</td>
+<td>POST</td>
+<td><code>/ai/chat/title</code></td>
+<td>生成标题</td>
+</tr>
+<tr>
+<td>对话</td>
+<td>GET</td>
+<td><code>/ai/chat/history</code></td>
+<td>历史标题列表</td>
+</tr>
+<tr>
+<td>对话</td>
+<td>GET</td>
+<td><code>/ai/chat/history/{id}</code></td>
+<td>某会话历史详情</td>
+</tr>
+<tr>
+<td>对话</td>
+<td>POST</td>
+<td><code>/ai/chat/new/{id}</code></td>
+<td>新建会话</td>
+</tr>
+<tr>
+<td>对话</td>
+<td>DELETE</td>
+<td><code>/ai/chat/delete/{id}</code></td>
+<td>删除会话</td>
+</tr>
+<tr>
+<td>医疗</td>
+<td>同对话结构</td>
+<td><code>/ai/medical/*</code></td>
+<td>医疗问答</td>
+</tr>
+<tr>
+<td>PDF</td>
+<td>POST</td>
+<td><code>/ai/pdf/upload</code></td>
+<td>上传 PDF</td>
+</tr>
+<tr>
+<td>PDF</td>
+<td>同对话结构</td>
+<td><code>/ai/pdf/*</code></td>
+<td>PDF 问答</td>
+</tr>
+<tr>
+<td>出行</td>
+<td>同对话结构</td>
+<td><code>/ai/travel/*</code></td>
+<td>出行规划</td>
+</tr>
+</tbody></table>
+<h3 id="6-5-自动化测试"><a href="#6-5-自动化测试" class="headerlink" title="6.5 自动化测试"></a>6.5 自动化测试</h3><p>项目 <code>src/test</code> 目录下<strong>暂无单元测试</strong>。如需补充，示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootTest</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">UserServiceTest</span> &#123;</span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> UserService userService;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="type">void</span> <span class="title function_">login_shouldReturnToken</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="type">UserDto</span> <span class="variable">dto</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">UserDto</span>();</span><br><span class="line">        dto.setUsername(<span class="string">&quot;admin&quot;</span>);</span><br><span class="line">        dto.setPassword(<span class="string">&quot;123456&quot;</span>);</span><br><span class="line">        <span class="type">UserVo</span> <span class="variable">vo</span> <span class="operator">=</span> userService.login(dto);</span><br><span class="line">        assertNotNull(vo.getToken());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行：<code>mvn test</code>。</p>
+<h3 id="6-6-验证成功标准"><a href="#6-6-验证成功标准" class="headerlink" title="6.6 验证成功标准"></a>6.6 验证成功标准</h3><ul>
+<li>应用启动无报错，日志出现 <code>Started AiHubBackendApplication</code>；</li>
+<li>登录接口返回 200 且带 token；</li>
+<li>对话接口返回流式数据；</li>
+<li>医疗接口能正确调用工具（看 Neo4j 查询日志）；</li>
+<li>PDF 上传成功且问答基于文档内容。</li>
+</ul>
+<hr>
+<h2 id="七、业务详细流程"><a href="#七、业务详细流程" class="headerlink" title="七、业务详细流程"></a>七、业务详细流程</h2><h3 id="7-1-用户登录流程"><a href="#7-1-用户登录流程" class="headerlink" title="7.1 用户登录流程"></a>7.1 用户登录流程</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">[用户] 输入账号密码</span><br><span class="line">   │</span><br><span class="line">   ▼</span><br><span class="line">[UserController.login] 接收 UserDto</span><br><span class="line">   │</span><br><span class="line">   ▼</span><br><span class="line">[UserServiceImpl.login]</span><br><span class="line">   ├─► UserMapper.getUserByUsername 查 MySQL</span><br><span class="line">   ├─► 把用户信息序列化为 JSON</span><br><span class="line">   ├─► JwtUtil.createJWT 签发 Token（HS256，1小时过期）</span><br><span class="line">   └─► 返回 UserVo（含 token）</span><br><span class="line">   │</span><br><span class="line">   ▼</span><br><span class="line">[前端] 保存 token，后续请求带 Authorization 头</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-2-一次流式对话的完整流程"><a href="#7-2-一次流式对话的完整流程" class="headerlink" title="7.2 一次流式对话的完整流程"></a>7.2 一次流式对话的完整流程</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">[用户] 发送消息（带 memoryId）</span><br><span class="line">   │</span><br><span class="line">   ▼</span><br><span class="line">[ChatController.chat] 返回 Flux&lt;String&gt;</span><br><span class="line">   │</span><br><span class="line">   ▼</span><br><span class="line">[ChatServiceImpl.chatAI]</span><br><span class="line">   ├─► CompletableFuture.runAsync 异步保存用户消息到 MySQL</span><br><span class="line">   │</span><br><span class="line">   ├─► chatAssistant.chat(memoryId, message, date)</span><br><span class="line">   │      │</span><br><span class="line">   │      ▼</span><br><span class="line">   │  [LangChain4j 内部]</span><br><span class="line">   │      ├─► PersistentChatMemoryStore.getMessages 从 MySQL 取历史记忆</span><br><span class="line">   │      ├─► 拼接 SystemMessage + 历史 + 用户消息</span><br><span class="line">   │      ├─► 调用通义千问流式 API</span><br><span class="line">   │      └─► 每收到 token 触发 onPartialResponse</span><br><span class="line">   │</span><br><span class="line">   ├─► onPartialResponse: sink.next(token) → 前端逐字显示</span><br><span class="line">   │</span><br><span class="line">   ├─► onCompleteResponse:</span><br><span class="line">   │      ├─► 完整回答 saveHistory 到 MySQL</span><br><span class="line">   │      ├─► PersistentChatMemoryStore.updateMessages 更新记忆</span><br><span class="line">   │      └─► sink.complete()</span><br><span class="line">   │</span><br><span class="line">   └─► onError: sink.error(异常)</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-3-医疗问答防幻觉流程"><a href="#7-3-医疗问答防幻觉流程" class="headerlink" title="7.3 医疗问答防幻觉流程"></a>7.3 医疗问答防幻觉流程</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">[用户] &quot;头痛发烧是什么病？&quot;</span><br><span class="line">   │</span><br><span class="line">   ▼</span><br><span class="line">[MedicalAssistant.chat]</span><br><span class="line">   │</span><br><span class="line">   ▼</span><br><span class="line">[大模型] 判断：需要调用工具 getDiseasesBySymptom</span><br><span class="line">   │  输出工具调用请求：&#123;&quot;name&quot;:&quot;getDiseasesBySymptom&quot;,&quot;arguments&quot;:&#123;&quot;Symptom&quot;:[&quot;头痛&quot;,&quot;发烧&quot;]&#125;&#125;</span><br><span class="line">   │</span><br><span class="line">   ▼</span><br><span class="line">[LangChain4j] 反射调用 MedicalTool.getDiseasesBySymptom([&quot;头痛&quot;,&quot;发烧&quot;])</span><br><span class="line">   │</span><br><span class="line">   ▼</span><br><span class="line">[DiseaseRepository.getDiseasesBySymptom]</span><br><span class="line">   Cypher: MATCH (d:Disease)-[:has_symptom]-&gt;(s:Symptom) WHERE s.name IN [&quot;头痛&quot;,&quot;发烧&quot;] RETURN d LIMIT 5</span><br><span class="line">   │</span><br><span class="line">   ▼</span><br><span class="line">[Neo4j] 返回疾病列表 → ToolResult.success(疾病列表)</span><br><span class="line">   │</span><br><span class="line">   ▼</span><br><span class="line">[大模型] 拿到工具结果，组织成自然语言回答（系统提示词约束：只能基于 data 回答，无数据则拒绝）</span><br><span class="line">   │</span><br><span class="line">   ▼</span><br><span class="line">[用户] 收到基于真实图谱数据的回答</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-4-PDF-RAG-问答流程"><a href="#7-4-PDF-RAG-问答流程" class="headerlink" title="7.4 PDF RAG 问答流程"></a>7.4 PDF RAG 问答流程</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">[上传阶段]</span><br><span class="line">  PDF → OSS → PDFBox 解析 → 双层切分 → text-embedding-v3 向量化 → PgVector</span><br><span class="line"></span><br><span class="line">[问答阶段]</span><br><span class="line">  用户问题</span><br><span class="line">     │</span><br><span class="line">     ▼</span><br><span class="line">  问题向量化</span><br><span class="line">     │</span><br><span class="line">     ▼</span><br><span class="line">  PgVector 相似度检索（minScore=0.6, maxResults=1）</span><br><span class="line">     │</span><br><span class="line">     ▼</span><br><span class="line">  检索到的文档片段 + 用户问题 → 拼进提示词</span><br><span class="line">     │</span><br><span class="line">     ▼</span><br><span class="line">  大模型基于片段回答（系统提示词约束：只能基于文档，无关则拒绝）</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-5-数据流转汇总"><a href="#7-5-数据流转汇总" class="headerlink" title="7.5 数据流转汇总"></a>7.5 数据流转汇总</h3><table>
+<thead>
+<tr>
+<th>数据</th>
+<th>流向</th>
+<th>存储</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>用户账号&#x2F;密码</td>
+<td>登录时校验</td>
+<td>MySQL <code>user</code> 表</td>
+</tr>
+<tr>
+<td>对话消息</td>
+<td>每轮问答落库</td>
+<td>MySQL <code>*_message</code> 表（按场景分表）</td>
+</tr>
+<tr>
+<td>会话标题</td>
+<td>首条消息后 AI 生成</td>
+<td>MySQL <code>*_title</code> 表</td>
+</tr>
+<tr>
+<td>大模型对话记忆</td>
+<td>每轮更新</td>
+<td>MySQL <code>memory</code> 表（JSON）</td>
+</tr>
+<tr>
+<td>PDF 文件</td>
+<td>上传后存对象存储</td>
+<td>阿里云 OSS</td>
+</tr>
+<tr>
+<td>PDF 向量</td>
+<td>上传后计算存入</td>
+<td>PgVector</td>
+</tr>
+<tr>
+<td>医疗知识</td>
+<td>启动前批量导入</td>
+<td>Neo4j</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="八、常见问题与-Troubleshooting"><a href="#八、常见问题与-Troubleshooting" class="headerlink" title="八、常见问题与 Troubleshooting"></a>八、常见问题与 Troubleshooting</h2><h3 id="8-1-环境搭建类"><a href="#8-1-环境搭建类" class="headerlink" title="8.1 环境搭建类"></a>8.1 环境搭建类</h3><p><strong>Q1：启动报错 <code>Could not resolve placeholder &#39;ALI_API_KEY&#39;</code></strong></p>
+<ul>
+<li><strong>原因</strong>：<code>application.yml</code> 中 <code>${ALI_API_KEY}</code> 没有默认值，且环境变量未设置；LangChain4j DashScope 自动配置类在条件评估阶段就要解析该占位符。</li>
+<li><strong>解决</strong>：① 设置环境变量 <code>$env:ALI_API_KEY=&quot;sk-xxx&quot;</code>；② 或把 yml 改成 <code>${ALI_API_KEY:}</code>（冒号后留空给默认值）。</li>
+</ul>
+<p><strong>Q2：启动报错 <code>Communications link failure</code>（连不上 MySQL）</strong></p>
+<ul>
+<li>检查 MySQL 是否启动；</li>
+<li>检查 <code>application.yml</code> 中 url、username、password 是否正确；</li>
+<li>检查 MySQL 是否允许本地连接（<code>bind-address</code>）。</li>
+</ul>
+<p><strong>Q3：启动报错 <code>Unable to connect to Neo4j</code></strong></p>
+<ul>
+<li>检查 Neo4j 是否启动（<code>http://localhost:7474</code> 能否打开）；</li>
+<li>检查 <code>spring.neo4j.authentication.password</code> 是否为你设的密码；</li>
+<li>首次登录 Neo4j 浏览器会强制改密，改完要同步到 yml。</li>
+</ul>
+<p><strong>Q4：PDF 模块报错空指针（PgVector 连不上）</strong></p>
+<ul>
+<li><strong>原因</strong>：原 <code>application.yml</code> 的 <code>dai.pdf</code> 只配了 <code>host</code> 和 <code>index-name</code>，缺少 <code>dataBase/table/port/user/password/dimension</code>。</li>
+<li><strong>解决</strong>：按本文 4.5 节补全 <code>dai.pdf</code> 下的全部字段。</li>
+</ul>
+<h3 id="8-2-运行时类"><a href="#8-2-运行时类" class="headerlink" title="8.2 运行时类"></a>8.2 运行时类</h3><p><strong>Q5：对话接口返回 401</strong></p>
+<ul>
+<li>检查 Header 是否带 <code>Authorization: &lt;token&gt;</code>；</li>
+<li>检查 token 是否过期（默认 1 小时）；</li>
+<li>检查 JWT 密钥 <code>dai.framework.jwt.base64-encoded-secret-key</code> 是否被改动。</li>
+</ul>
+<p><strong>Q6：对话接口一直转圈不返回</strong></p>
+<ul>
+<li>检查通义千问 API Key 是否有效、是否有余额；</li>
+<li>检查网络能否访问 DashScope API（国内可直连）；</li>
+<li>看日志是否有大模型调用超时。</li>
+</ul>
+<p><strong>Q7：医疗模块回答”未查询到相关信息”</strong></p>
+<ul>
+<li>正常现象：说明工具查询图谱没匹配到。检查症状描述是否准确；</li>
+<li>可进 Neo4j 浏览器执行 <code>MATCH (n:Disease) RETURN count(n)</code> 确认图谱有数据；</li>
+<li>确认 <code>build_medicalgraph.py</code> 已成功执行。</li>
+</ul>
+<p><strong>Q8：出行模块报错（MCP 相关）</strong></p>
+<ul>
+<li>检查 <code>dai.api.mcp-server</code> 路径是否指向真实存在的 <code>Mcp-0.0.1-SNAPSHOT.jar</code>；</li>
+<li>检查该 jar 能否独立运行（<code>java -jar Mcp-0.0.1-SNAPSHOT.jar</code>）；</li>
+<li>检查高德&#x2F;百度地图 Key 是否配置。</li>
+</ul>
+<p><strong>Q9：ThreadLocal 用户串号</strong></p>
+<ul>
+<li>确认 <code>UserTokenIntercept.afterCompletion</code> 中调用了 <code>UserThreadLocal.removeSubject()</code>；</li>
+<li>不要在异步线程（如 <code>CompletableFuture</code>）里读取 ThreadLocal（异步线程拿不到主线程的 ThreadLocal）。</li>
+</ul>
+<h3 id="8-3-性能优化建议"><a href="#8-3-性能优化建议" class="headerlink" title="8.3 性能优化建议"></a>8.3 性能优化建议</h3><ol>
+<li><strong>MySQL 加索引</strong>：<code>*_message</code> 表的 <code>memory_id</code>、<code>*_title</code> 表的 <code>user_id</code> 建议加索引，否则数据量大后历史查询全表扫描；</li>
+<li><strong>CompletableFuture 用自定义线程池</strong>：当前 <code>runAsync()</code> 用公共 <code>ForkJoinPool.commonPool()</code>，阻塞型落库任务可能拖慢其他功能，应传入自定义 <code>ThreadPoolExecutor</code>；</li>
+<li><strong>对话记忆压缩</strong>：滑动窗口 20 条仍可能超 token，可对历史消息做摘要压缩；</li>
+<li><strong>PgVector 索引</strong>：向量数据量大后建 IVFFlat 或 HNSW 索引提升检索速度；</li>
+<li><strong>OSS 上传加超时与重试</strong>：大文件上传建议分片上传。</li>
+</ol>
+<h3 id="8-4-安全注意事项"><a href="#8-4-安全注意事项" class="headerlink" title="8.4 安全注意事项"></a>8.4 安全注意事项</h3><ol>
+<li><strong>密钥绝不入库</strong>：API Key、数据库密码不要硬编码进代码或提交到 Git，用环境变量；</li>
+<li><strong>JWT 密钥要够长</strong>：<code>base64-encoded-secret-key</code> 不要用弱密钥，定期轮换；</li>
+<li><strong>JWT 不放敏感信息</strong>：payload 只 Base64 不加密，不要放密码；</li>
+<li><strong>文件上传校验</strong>：当前 PDF 上传只限制了大小（10MB），建议加文件类型白名单、病毒扫描；</li>
+<li><strong>SQL 注入</strong>：项目所有查询用 <code>#{}</code> 预编译，安全；不要为了图快用 <code>${}</code>；</li>
+<li><strong>生产环境关闭调试日志</strong>：<code>application.yml</code> 中 <code>logging.level.org.springframework.data.neo4j=DEBUG</code> 在生产应改为 INFO；</li>
+<li><strong>HTTPS</strong>：生产环境必须用 HTTPS 传输 token。</li>
+</ol>
+<hr>
+<h2 id="附录：关键配置速查表"><a href="#附录：关键配置速查表" class="headerlink" title="附录：关键配置速查表"></a>附录：关键配置速查表</h2><table>
+<thead>
+<tr>
+<th>配置项</th>
+<th>位置</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>MySQL 连接</td>
+<td><code>spring.datasource.*</code></td>
+<td>库名&#x2F;账号&#x2F;密码</td>
+</tr>
+<tr>
+<td>Neo4j 连接</td>
+<td><code>spring.neo4j.*</code></td>
+<td>uri&#x2F;账号&#x2F;密码</td>
+</tr>
+<tr>
+<td>通义千问 Key</td>
+<td><code>langchain4j.community.dashscope.*.api-key</code></td>
+<td>环境变量 <code>ALI_API_KEY</code></td>
+</tr>
+<tr>
+<td>JWT 密钥&#x2F;过期</td>
+<td><code>dai.framework.jwt.*</code></td>
+<td>secret-key &#x2F; ttl(毫秒)</td>
+</tr>
+<tr>
+<td>地图 Key</td>
+<td><code>dai.api.amap-api / baidu-api</code></td>
+<td>环境变量</td>
+</tr>
+<tr>
+<td>MCP jar 路径</td>
+<td><code>dai.api.mcp-server</code></td>
+<td>本地绝对路径</td>
+</tr>
+<tr>
+<td>PgVector 连接</td>
+<td><code>dai.pdf.*</code></td>
+<td>host&#x2F;dataBase&#x2F;table&#x2F;port&#x2F;user&#x2F;password&#x2F;dimension</td>
+</tr>
+<tr>
+<td>OSS</td>
+<td><code>aliyun.oss.*</code></td>
+<td>endpoint&#x2F;ak&#x2F;sk&#x2F;bucket</td>
+</tr>
+</tbody></table>
+<hr>
+<blockquote>
+<p><strong>文档版本</strong>：v1.0　|　基于项目源码实际编写，所有代码片段均可在仓库中找到对应实现。</p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/myblog/2026/09/07/%E6%88%91%E7%9A%84RAG/" rel="prev" title="我的RAG">
+                  <i class="fa fa-angle-left"></i> 我的RAG
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/myblog/2026/09/07/%E9%AB%98%E6%98%9FRAG%E7%9A%84%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3/" rel="next" title="">
+                   <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">woshiyigedacainiao</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
