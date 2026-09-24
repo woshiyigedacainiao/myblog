@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/myblog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/myblog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/myblog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/myblog/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/myblog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css" integrity="sha256-4Lad8m4ZWW1Lgb9+sMVLYEfnIh7BjV1NQMEe79Pviks=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"woshiyigedacainiao.github.io","root":"/myblog/","images":"/myblog/images","scheme":"Muse","darkmode":true,"version":"8.29.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/myblog/js/config.js" defer></script>
+
+    <meta name="description" content="现在我已经掌握了整个秒杀流程的核心代码。让我整理一下完整的秒杀流程，包括：  活动管理（后台）：创建、上线、下线 前台抢购流程 结果查询 订单取消回补  让我整理出完整的流程图和说明。 核心文件：  SeckillController.java - 前台接口 AdminSeckillController.java - 后台管理接口 SeckillOrderServiceImpl.java - 秒杀">
+<meta property="og:type" content="article">
+<meta property="og:title" content="wmall秒杀流程详解">
+<meta property="og:url" content="https://woshiyigedacainiao.github.io/myblog/2026/09/24/wmall%E7%A7%92%E6%9D%80%E6%B5%81%E7%A8%8B%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:site_name" content="我的Java学习博客">
+<meta property="og:description" content="现在我已经掌握了整个秒杀流程的核心代码。让我整理一下完整的秒杀流程，包括：  活动管理（后台）：创建、上线、下线 前台抢购流程 结果查询 订单取消回补  让我整理出完整的流程图和说明。 核心文件：  SeckillController.java - 前台接口 AdminSeckillController.java - 后台管理接口 SeckillOrderServiceImpl.java - 秒杀">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-09-24T10:10:27.000Z">
+<meta property="article:modified_time" content="2026-09-24T10:11:04.457Z">
+<meta property="article:author" content="woshiyigedacainiao">
+<meta property="article:tag" content="Java,SpringBoot,MySQL,Redis">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://woshiyigedacainiao.github.io/myblog/2026/09/24/wmall%E7%A7%92%E6%9D%80%E6%B5%81%E7%A8%8B%E8%AF%A6%E8%A7%A3/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://woshiyigedacainiao.github.io/myblog/2026/09/24/wmall%E7%A7%92%E6%9D%80%E6%B5%81%E7%A8%8B%E8%AF%A6%E8%A7%A3/","path":"2026/09/24/wmall秒杀流程详解/","title":"wmall秒杀流程详解"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>wmall秒杀流程详解 | 我的Java学习博客</title>
+  
+
+
+
+
+
+
+
+
+  
+<script src="/myblog/js/utils.js" defer></script><script src="/myblog/js/motion.js" defer></script><script src="/myblog/js/sidebar.js" defer></script><script src="/myblog/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/myblog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-search popup-trigger" aria-label="搜索" role="button">
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/myblog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">我的Java学习博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-toggle" aria-label="切换导航栏" role="button">
+  </div>
+</div>
+
+
+
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A7%92%E6%9D%80%E5%AE%8C%E6%95%B4%E6%B5%81%E7%A8%8B"><span class="nav-number">1.</span> <span class="nav-text">秒杀完整流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E6%B4%BB%E5%8A%A8%E7%AE%A1%E7%90%86%E9%98%B6%E6%AE%B5%EF%BC%88%E5%90%8E%E5%8F%B0%EF%BC%89"><span class="nav-number">1.1.</span> <span class="nav-text">一、活动管理阶段（后台）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E5%89%8D%E5%8F%B0%E6%8A%A2%E8%B4%AD%E9%98%B6%E6%AE%B5%EF%BC%88%E6%A0%B8%E5%BF%83%EF%BC%89"><span class="nav-number">1.2.</span> <span class="nav-text">二、前台抢购阶段（核心）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AC%AC-%E2%91%A5-%E6%AD%A5%EF%BC%9ARedis-Lua-%E5%8E%9F%E5%AD%90%E9%A2%84%E6%89%A3%EF%BC%88seckill-deduct-lua%EF%BC%89"><span class="nav-number">1.2.1.</span> <span class="nav-text">第 ⑥ 步：Redis Lua 原子预扣（seckill_deduct.lua）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AC%AC-%E2%91%A7-%E6%AD%A5%EF%BC%9ADB-%E5%B1%82%E4%BA%8C%E6%AC%A1%E6%89%A3%E5%87%8F%EF%BC%88SeckillTxServiceImpl-createSeckillOrder%EF%BC%89"><span class="nav-number">1.2.2.</span> <span class="nav-text">第 ⑧ 步：DB 层二次扣减（SeckillTxServiceImpl.createSeckillOrder）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BC%82%E5%B8%B8%E5%9B%9E%E6%BB%9A%E6%9C%BA%E5%88%B6"><span class="nav-number">1.2.3.</span> <span class="nav-text">异常回滚机制</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E7%BB%93%E6%9E%9C%E6%9F%A5%E8%AF%A2%E9%98%B6%E6%AE%B5"><span class="nav-number">1.3.</span> <span class="nav-text">三、结果查询阶段</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E8%AE%A2%E5%8D%95%E5%8F%96%E6%B6%88%E5%9B%9E%E8%A1%A5%E9%98%B6%E6%AE%B5"><span class="nav-number">1.4.</span> <span class="nav-text">四、订单取消回补阶段</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%94%A8%E5%88%B0%E4%BA%86%E4%BB%80%E4%B9%88%E6%8A%80%E6%9C%AF%EF%BC%9F%E8%A7%A3%E5%86%B3%E4%BA%86%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98%EF%BC%9F"><span class="nav-number">2.</span> <span class="nav-text">用到了什么技术？解决了什么问题？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E5%8F%A5%E8%AF%9D%E6%80%BB%E7%BB%93%E6%9E%B6%E6%9E%84%E6%80%9D%E8%B7%AF"><span class="nav-number">3.</span> <span class="nav-text">一句话总结架构思路</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">woshiyigedacainiao</p>
+  <div class="site-description" itemprop="description">Java后端学习笔记、项目踩坑总结</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/myblog/archives/">
+          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://woshiyigedacainiao.github.io/myblog/2026/09/24/wmall%E7%A7%92%E6%9D%80%E6%B5%81%E7%A8%8B%E8%AF%A6%E8%A7%A3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/myblog/images/avatar.gif">
+      <meta itemprop="name" content="woshiyigedacainiao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我的Java学习博客">
+      <meta itemprop="description" content="Java后端学习笔记、项目踩坑总结">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="wmall秒杀流程详解 | 我的Java学习博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          wmall秒杀流程详解
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-09-24 18:10:27 / 修改时间：18:11:04" itemprop="dateCreated datePublished" datetime="2026-09-24T18:10:27+08:00">2026-09-24</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>现在我已经掌握了整个秒杀流程的核心代码。让我整理一下完整的秒杀流程，包括：</p>
+<ol>
+<li>活动管理（后台）：创建、上线、下线</li>
+<li>前台抢购流程</li>
+<li>结果查询</li>
+<li>订单取消回补</li>
+</ol>
+<p>让我整理出完整的流程图和说明。</p>
+<p>核心文件：</p>
+<ul>
+<li><code>SeckillController.java</code> - 前台接口</li>
+<li><code>AdminSeckillController.java</code> - 后台管理接口</li>
+<li><code>SeckillOrderServiceImpl.java</code> - 秒杀下单主流程</li>
+<li><code>SeckillStockServiceImpl.java</code> - Redis 库存扣减（Lua）</li>
+<li><code>SeckillTxServiceImpl.java</code> - 事务内 DB 扣减 + 下单</li>
+<li><code>SeckillActivityServiceImpl.java</code> - 活动管理</li>
+<li><code>seckill_deduct.lua</code> - 预扣库存 Lua</li>
+<li><code>seckill_return.lua</code> - 回补库存 Lua</li>
+<li><code>SmsSeckillActivityMapper.xml</code> - DB 库存扣减 SQL</li>
+</ul>
+<p>整个流程涉及的技术：</p>
+<ul>
+<li>Redis + Lua 脚本（原子预扣库存 + 限购）</li>
+<li>MySQL 条件更新（DB 层防超卖）</li>
+<li>Spring 事务（@Transactional）</li>
+<li>事务同步器（TransactionSynchronization，事务提交后发通知）</li>
+<li>幂等（requestId）</li>
+<li>Sa-Token 鉴权</li>
+</ul>
+<p>解决的问题：</p>
+<ol>
+<li>超卖问题（Redis Lua + DB 条件更新双保险）</li>
+<li>超限购问题（Redis Hash 记录用户已购数量）</li>
+<li>高并发性能问题（Redis 预扣，DB 兜底）</li>
+<li>重复提交问题（requestId 幂等）</li>
+<li>数据一致性问题（Redis 预扣成功但 DB 失败时回补 Redis）</li>
+<li>订单取消后库存释放问题（DB + Redis 双向回补）<br>现在我已经完整掌握了秒杀模块的所有核心代码，下面给你梳理完整的秒杀流程。</li>
+</ol>
+<hr>
+<h2 id="秒杀完整流程"><a href="#秒杀完整流程" class="headerlink" title="秒杀完整流程"></a>秒杀完整流程</h2><p>整个秒杀体系分为 <strong>后台活动管理</strong> → <strong>前台抢购</strong> → <strong>结果查询</strong> → <strong>取消回补</strong> 四个阶段。</p>
+<h3 id="一、活动管理阶段（后台）"><a href="#一、活动管理阶段（后台）" class="headerlink" title="一、活动管理阶段（后台）"></a>一、活动管理阶段（后台）</h3><p>入口：<code>AdminSeckillController.java</code></p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>方法</th>
+<th>关键逻辑</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>创建活动</td>
+<td><code>create()</code></td>
+<td>校验时间、SKU 有效性，DB 插入，初始 <code>availableStock = totalStock</code>，状态&#x3D;下线</td>
+</tr>
+<tr>
+<td>编辑活动</td>
+<td><code>update()</code></td>
+<td>上线活动禁止编辑</td>
+</tr>
+<tr>
+<td><strong>上线活动</strong></td>
+<td><code>online()</code></td>
+<td>① 状态改上线 ② <strong>以 DB 剩余库存初始化 Redis</strong> <code>seckill:stock:{id}</code> ③ 清空上一轮 <code>bought</code>&#x2F;<code>joined</code> key</td>
+</tr>
+<tr>
+<td>下线活动</td>
+<td><code>offline()</code></td>
+<td>状态改下线，删除 Redis 三个 key</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>关键点：上线时把库存从 DB 同步到 Redis，Redis 是抢购时的第一道闸门。</p>
+</blockquote>
+<hr>
+<h3 id="二、前台抢购阶段（核心）"><a href="#二、前台抢购阶段（核心）" class="headerlink" title="二、前台抢购阶段（核心）"></a>二、前台抢购阶段（核心）</h3><p>入口：<code>SeckillController.execute()</code> → <code>SeckillOrderServiceImpl.execute()</code></p>
+<p>完整执行链路如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">① 幂等校验（requestId）</span><br><span class="line">   ↓ 重复请求直接返回原订单号</span><br><span class="line">② 校验活动状态（必须上线）</span><br><span class="line">   ↓</span><br><span class="line">③ 校验时间窗口（未开始/已结束拦截）</span><br><span class="line">   ↓</span><br><span class="line">④ 校验单次限购数量</span><br><span class="line">   ↓</span><br><span class="line">⑤ 记录参与人数（Redis Set，失败不影响主流程）</span><br><span class="line">   ↓</span><br><span class="line">⑥ Redis Lua 原子预扣库存 + 限购校验  ← 第一道闸门</span><br><span class="line">   ↓ 失败直接返回（售罄/超限购）</span><br><span class="line">⑦ 校验 SKU/SPU 上架状态</span><br><span class="line">   ↓</span><br><span class="line">⑧ DB 条件扣减库存 + 生成订单（事务内）  ← 第二道闸门</span><br><span class="line">   ↓ 失败 → 回补 Redis 库存</span><br><span class="line">⑨ 事务提交后异步发站内信通知</span><br><span class="line">   ↓</span><br><span class="line">返回订单号</span><br></pre></td></tr></table></figure>
+
+<h4 id="第-⑥-步：Redis-Lua-原子预扣（seckill-deduct-lua）"><a href="#第-⑥-步：Redis-Lua-原子预扣（seckill-deduct-lua）" class="headerlink" title="第 ⑥ 步：Redis Lua 原子预扣（seckill_deduct.lua）"></a>第 ⑥ 步：Redis Lua 原子预扣（<code>seckill_deduct.lua</code>）</h4><figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 一个原子操作完成：库存判断 + 限购判断 + 扣减</span></span><br><span class="line"><span class="keyword">local</span> stock = redis.call(<span class="string">&#x27;GET&#x27;</span>, KEYS[<span class="number">1</span>])          <span class="comment">-- 剩余库存</span></span><br><span class="line"><span class="keyword">if</span> <span class="keyword">not</span> stock <span class="keyword">then</span> <span class="keyword">return</span> <span class="number">-1</span> <span class="keyword">end</span>                    <span class="comment">-- 未初始化（未上线）</span></span><br><span class="line"><span class="keyword">if</span> <span class="built_in">tonumber</span>(stock) &lt; quantity <span class="keyword">then</span> <span class="keyword">return</span> <span class="number">0</span> <span class="keyword">end</span>    <span class="comment">-- 售罄</span></span><br><span class="line"><span class="keyword">local</span> bought = <span class="built_in">tonumber</span>(redis.call(<span class="string">&#x27;HGET&#x27;</span>, KEYS[<span class="number">2</span>], userId) <span class="keyword">or</span> <span class="string">&#x27;0&#x27;</span>)</span><br><span class="line"><span class="keyword">if</span> bought + quantity &gt; limitPerUser <span class="keyword">then</span> <span class="keyword">return</span> <span class="number">-2</span> <span class="keyword">end</span>  <span class="comment">-- 超限购</span></span><br><span class="line">redis.call(<span class="string">&#x27;DECRBY&#x27;</span>, KEYS[<span class="number">1</span>], quantity)            <span class="comment">-- 扣库存</span></span><br><span class="line">redis.call(<span class="string">&#x27;HINCRBY&#x27;</span>, KEYS[<span class="number">2</span>], userId, quantity)   <span class="comment">-- 记录已购</span></span><br><span class="line"><span class="keyword">return</span> <span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>为什么用 Lua？</strong> 因为 <code>GET</code> → 判断 → <code>DECRBY</code> 不是原子的，高并发下会超卖。Lua 脚本在 Redis 单线程中执行，保证整个判断+扣减是原子的。</p>
+<h4 id="第-⑧-步：DB-层二次扣减（SeckillTxServiceImpl-createSeckillOrder）"><a href="#第-⑧-步：DB-层二次扣减（SeckillTxServiceImpl-createSeckillOrder）" class="headerlink" title="第 ⑧ 步：DB 层二次扣减（SeckillTxServiceImpl.createSeckillOrder）"></a>第 ⑧ 步：DB 层二次扣减（<code>SeckillTxServiceImpl.createSeckillOrder</code>）</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> sms_seckill_activity</span><br><span class="line"><span class="keyword">SET</span> available_stock <span class="operator">=</span> available_stock <span class="operator">-</span> #&#123;quantity&#125;</span><br><span class="line"><span class="keyword">WHERE</span> id <span class="operator">=</span> #&#123;id&#125; <span class="keyword">AND</span> available_stock <span class="operator">&gt;=</span> #&#123;quantity&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这是 <strong>第二道防超卖闸门</strong>。即使 Redis 出问题，DB 条件更新也不会让库存变负数。整个方法加了 <code>@Transactional</code>，扣库存 + 插订单 + 插订单项要么全成功要么全回滚。</p>
+<h4 id="异常回滚机制"><a href="#异常回滚机制" class="headerlink" title="异常回滚机制"></a>异常回滚机制</h4><p>如果第 ⑧ 步 DB 落库失败（抛异常），会调用 <code>rollbackRedis()</code> → <code>seckill_return.lua</code> 把刚才 Redis 预扣的库存和限购记录回补回去，保证 Redis 与 DB 一致。</p>
+<hr>
+<h3 id="三、结果查询阶段"><a href="#三、结果查询阶段" class="headerlink" title="三、结果查询阶段"></a>三、结果查询阶段</h3><p><code>SeckillOrderServiceImpl.result()</code>：根据 <code>activityId + userId</code> 查最新订单，返回秒杀是否成功、订单号、状态、金额等。</p>
+<hr>
+<h3 id="四、订单取消回补阶段"><a href="#四、订单取消回补阶段" class="headerlink" title="四、订单取消回补阶段"></a>四、订单取消回补阶段</h3><p><code>OrderServiceImpl.restoreSeckillStock()</code>：用户取消秒杀订单时，<strong>DB 库存回补 + Redis 库存与限购记录回补</strong>，双向保持一致。</p>
+<hr>
+<h2 id="用到了什么技术？解决了什么问题？"><a href="#用到了什么技术？解决了什么问题？" class="headerlink" title="用到了什么技术？解决了什么问题？"></a>用到了什么技术？解决了什么问题？</h2><table>
+<thead>
+<tr>
+<th>技术手段</th>
+<th>解决的问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Redis + Lua 脚本</strong></td>
+<td>高并发下原子性扣库存，避免 <code>GET-判断-DECRBY</code> 的竞态导致<strong>超卖</strong></td>
+</tr>
+<tr>
+<td><strong>Redis Hash（<code>seckill:bought</code>）</strong></td>
+<td>记录每个用户已购数量，解决<strong>超限购</strong>问题（一人只能买 N 件）</td>
+</tr>
+<tr>
+<td><strong>DB 条件更新（<code>WHERE available_stock &gt;= quantity</code>）</strong></td>
+<td>第二道防超卖闸门，Redis 挂了也不会卖超</td>
+</tr>
+<tr>
+<td><strong>Spring <code>@Transactional</code></strong></td>
+<td>DB 扣库存 + 生成订单原子性，防止扣了库存没订单或有订单没扣库存</td>
+</tr>
+<tr>
+<td><strong><code>requestId</code> 幂等校验</strong></td>
+<td>防止用户重复点击&#x2F;网络重试导致<strong>重复下单</strong></td>
+</tr>
+<tr>
+<td><strong>Redis 预扣 + DB 兜底 + 失败回补</strong></td>
+<td>解决<strong>高并发性能</strong>（Redis 扛流量）与<strong>数据一致性</strong>（DB 为准，失败回补 Redis）</td>
+</tr>
+<tr>
+<td><strong><code>TransactionSynchronization.afterCommit</code></strong></td>
+<td>事务提交成功后才发站内信，避免通知失败导致订单回滚</td>
+</tr>
+<tr>
+<td><strong>Redis Set（<code>seckill:joined</code>）</strong></td>
+<td>去重统计参与人数，用于后台转化率分析</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="一句话总结架构思路"><a href="#一句话总结架构思路" class="headerlink" title="一句话总结架构思路"></a>一句话总结架构思路</h2><p><strong>Redis 扛流量（Lua 原子预扣+限购），DB 保数据（条件更新防超卖），事务保一致，幂等防重复，回补保闭环。</strong></p>
+<p>这是一个经典的「Redis 预扣 + DB 兜底」双保险秒杀方案，在保证不超卖、不超限购的前提下，用 Redis 承接了绝大部分高并发请求，DB 只处理真正抢到的少量订单。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/myblog/2026/09/24/wmall%E7%99%BB%E5%BD%95%E9%89%B4%E6%9D%83%E8%AE%A4%E8%AF%81%EF%BC%88Sa-Token-RBAC%EF%BC%89/" rel="prev" title="wmall登录鉴权认证（Sa-Token + RBAC）">
+                  <i class="fa fa-angle-left"></i> wmall登录鉴权认证（Sa-Token + RBAC）
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/myblog/2026/09/24/wmall%E6%99%AE%E9%80%9A%E8%AE%A2%E5%8D%95%E6%B5%81%E7%A8%8B%E8%AF%A6%E8%A7%A3/" rel="next" title="wmall普通订单流程详解">
+                  wmall普通订单流程详解 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">woshiyigedacainiao</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

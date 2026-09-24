@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/myblog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/myblog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/myblog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/myblog/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/myblog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css" integrity="sha256-4Lad8m4ZWW1Lgb9+sMVLYEfnIh7BjV1NQMEe79Pviks=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"woshiyigedacainiao.github.io","root":"/myblog/","images":"/myblog/images","scheme":"Muse","darkmode":true,"version":"8.29.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/myblog/js/config.js" defer></script>
+
+    <meta name="description" content="Sa-Token 一、整体架构本项目基于 Spring Boot + Sa-Token + MyBatis-Plus + Redis + MySQL 实现登录认证，核心要点：    能力 实现    认证框架 Sa-Token（StpUtil）   密码加密 Hutool BCrypt   会话存储 Sa-Token 默认（结合 Redis）   失败锁定 Redis 计数，5次失败锁定15分钟">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Sa-Token的使用">
+<meta property="og:url" content="https://woshiyigedacainiao.github.io/myblog/2026/09/13/Sa-Token%E7%9A%84%E4%BD%BF%E7%94%A8/index.html">
+<meta property="og:site_name" content="我的Java学习博客">
+<meta property="og:description" content="Sa-Token 一、整体架构本项目基于 Spring Boot + Sa-Token + MyBatis-Plus + Redis + MySQL 实现登录认证，核心要点：    能力 实现    认证框架 Sa-Token（StpUtil）   密码加密 Hutool BCrypt   会话存储 Sa-Token 默认（结合 Redis）   失败锁定 Redis 计数，5次失败锁定15分钟">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-09-13T09:51:58.000Z">
+<meta property="article:modified_time" content="2026-09-13T09:52:35.906Z">
+<meta property="article:author" content="woshiyigedacainiao">
+<meta property="article:tag" content="Java,SpringBoot,MySQL,Redis">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://woshiyigedacainiao.github.io/myblog/2026/09/13/Sa-Token%E7%9A%84%E4%BD%BF%E7%94%A8/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://woshiyigedacainiao.github.io/myblog/2026/09/13/Sa-Token%E7%9A%84%E4%BD%BF%E7%94%A8/","path":"2026/09/13/Sa-Token的使用/","title":"Sa-Token的使用"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Sa-Token的使用 | 我的Java学习博客</title>
+  
+
+
+
+
+
+
+
+
+  
+<script src="/myblog/js/utils.js" defer></script><script src="/myblog/js/motion.js" defer></script><script src="/myblog/js/sidebar.js" defer></script><script src="/myblog/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/myblog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-search popup-trigger" aria-label="搜索" role="button">
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/myblog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">我的Java学习博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-toggle" aria-label="切换导航栏" role="button">
+  </div>
+</div>
+
+
+
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Sa-Token"><span class="nav-number">1.</span> <span class="nav-text">Sa-Token</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="nav-number">1.1.</span> <span class="nav-text">一、整体架构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E5%AE%8C%E6%95%B4%E7%99%BB%E5%BD%95%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B"><span class="nav-number">1.2.</span> <span class="nav-text">二、完整登录认证流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="nav-number">1.2.1.</span> <span class="nav-text">流程图</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E6%A0%B8%E5%BF%83%E4%BB%A3%E7%A0%81"><span class="nav-number">1.3.</span> <span class="nav-text">三、核心代码</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%85%A5%E5%8F%A3%E6%8E%A7%E5%88%B6%E5%99%A8-%E2%80%94-AuthController-java"><span class="nav-number">1.3.1.</span> <span class="nav-text">1. 入口控制器 — AuthController.java</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%85%A5%E5%8F%82%E5%AF%B9%E8%B1%A1-%E2%80%94-LoginDTO-java"><span class="nav-number">1.3.2.</span> <span class="nav-text">2. 入参对象 — LoginDTO.java</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E7%99%BB%E5%BD%95%E6%A0%B8%E5%BF%83%E9%80%BB%E8%BE%91-%E2%80%94-UmsUserServiceImpl-login"><span class="nav-number">1.3.3.</span> <span class="nav-text">3. 登录核心逻辑 — UmsUserServiceImpl.login()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E5%A4%B1%E8%B4%A5%E9%94%81%E5%AE%9A%E6%9C%BA%E5%88%B6"><span class="nav-number">1.3.4.</span> <span class="nav-text">4. 失败锁定机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E7%99%BB%E5%87%BA-%E2%80%94-logout"><span class="nav-number">1.3.5.</span> <span class="nav-text">5. 登出 — logout()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-%E5%BD%93%E5%89%8D%E7%94%A8%E6%88%B7%E4%BF%A1%E6%81%AF%EF%BC%88%E5%90%AB%E8%A7%92%E8%89%B2%E6%9D%83%E9%99%90%EF%BC%89%E2%80%94-currentUser-buildUserInfo"><span class="nav-number">1.3.6.</span> <span class="nav-text">6. 当前用户信息（含角色权限）— currentUser() &#x2F; buildUserInfo()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-%E5%BC%82%E6%AD%A5%E7%99%BB%E5%BD%95%E6%97%A5%E5%BF%97-%E2%80%94-UmsLoginLogServiceImpl-java"><span class="nav-number">1.3.7.</span> <span class="nav-text">7. 异步登录日志 — UmsLoginLogServiceImpl.java</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E8%B7%AF%E7%94%B1%E6%8B%A6%E6%88%AA%E4%B8%8E%E9%89%B4%E6%9D%83"><span class="nav-number">1.4.</span> <span class="nav-text">四、路由拦截与鉴权</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%85%A8%E5%B1%80%E7%99%BB%E5%BD%95%E6%8B%A6%E6%88%AA-%E2%80%94-SaTokenConfig-java"><span class="nav-number">1.4.1.</span> <span class="nav-text">1. 全局登录拦截 — SaTokenConfig.java</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E8%A7%92%E8%89%B2-%E6%9D%83%E9%99%90%E6%95%B0%E6%8D%AE%E6%BA%90-%E2%80%94-StpInterfaceImpl-java"><span class="nav-number">1.4.2.</span> <span class="nav-text">2. 角色&#x2F;权限数据源 — StpInterfaceImpl.java</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-Sa-Token-%E9%85%8D%E7%BD%AE%EF%BC%88application-yml%EF%BC%89"><span class="nav-number">1.4.3.</span> <span class="nav-text">3. Sa-Token 配置（application.yml）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E5%85%A8%E5%B1%80%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86-%E2%80%94-GlobalExceptionHandler-java"><span class="nav-number">1.5.</span> <span class="nav-text">五、全局异常处理 — GlobalExceptionHandler.java</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AD%E3%80%81%E8%BF%94%E5%9B%9E%E5%AF%B9%E8%B1%A1"><span class="nav-number">1.6.</span> <span class="nav-text">六、返回对象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%83%E3%80%81%E6%95%B0%E6%8D%AE%E5%BA%93%E8%A1%A8%E7%BB%93%E6%9E%84%EF%BC%88RBAC%EF%BC%89"><span class="nav-number">1.7.</span> <span class="nav-text">七、数据库表结构（RBAC）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AB%E3%80%81%E7%99%BB%E5%BD%95%E6%97%B6%E5%BA%8F%E6%80%BB%E7%BB%93"><span class="nav-number">1.8.</span> <span class="nav-text">八、登录时序总结</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">woshiyigedacainiao</p>
+  <div class="site-description" itemprop="description">Java后端学习笔记、项目踩坑总结</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/myblog/archives/">
+          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://woshiyigedacainiao.github.io/myblog/2026/09/13/Sa-Token%E7%9A%84%E4%BD%BF%E7%94%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/myblog/images/avatar.gif">
+      <meta itemprop="name" content="woshiyigedacainiao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我的Java学习博客">
+      <meta itemprop="description" content="Java后端学习笔记、项目踩坑总结">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Sa-Token的使用 | 我的Java学习博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Sa-Token的使用
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-09-13 17:51:58 / 修改时间：17:52:35" itemprop="dateCreated datePublished" datetime="2026-09-13T17:51:58+08:00">2026-09-13</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="Sa-Token"><a href="#Sa-Token" class="headerlink" title="Sa-Token"></a>Sa-Token</h1><hr>
+<h2 id="一、整体架构"><a href="#一、整体架构" class="headerlink" title="一、整体架构"></a>一、整体架构</h2><p>本项目基于 <strong>Spring Boot + Sa-Token + MyBatis-Plus + Redis + MySQL</strong> 实现登录认证，核心要点：</p>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>实现</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>认证框架</td>
+<td>Sa-Token（<code>StpUtil</code>）</td>
+</tr>
+<tr>
+<td>密码加密</td>
+<td>Hutool <code>BCrypt</code></td>
+</tr>
+<tr>
+<td>会话存储</td>
+<td>Sa-Token 默认（结合 Redis）</td>
+</tr>
+<tr>
+<td>失败锁定</td>
+<td>Redis 计数，5次失败锁定15分钟</td>
+</tr>
+<tr>
+<td>权限模型</td>
+<td>RBAC（用户-角色-菜单）</td>
+</tr>
+<tr>
+<td>登录日志</td>
+<td>异步落库（<code>@Async</code>）</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="二、完整登录认证流程"><a href="#二、完整登录认证流程" class="headerlink" title="二、完整登录认证流程"></a>二、完整登录认证流程</h2><h3 id="流程图"><a href="#流程图" class="headerlink" title="流程图"></a>流程图</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">客户端 → AuthController.login (POST /auth/login)</span><br><span class="line">       → 参数校验 (@Valid LoginDTO)</span><br><span class="line">       → UmsUserServiceImpl.login</span><br><span class="line">          ├─ 1. checkLocked()      Redis 检查是否已锁定</span><br><span class="line">          ├─ 2. 查询用户 + BCrypt 校验密码</span><br><span class="line">          ├─ 3. 校验账号状态 status</span><br><span class="line">          ├─ 4. 清除失败计数 (redis delete)</span><br><span class="line">          ├─ 5. StpUtil.login(userId)  生成 token</span><br><span class="line">          ├─ 6. 异步记录登录日志</span><br><span class="line">          └─ 7. 构建 LoginVO (token + 用户信息+角色+权限)</span><br></pre></td></tr></table></figure>
+
+<p>后续请求：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">客户端带 Authorization: Bearer xxx</span><br><span class="line"> → SaInterceptor 拦截 → StpUtil.checkLogin()</span><br><span class="line"> → 注解鉴权 @SaCheckRole / @SaCheckPermission</span><br><span class="line"> → StpInterfaceImpl 回调查询角色/权限</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="三、核心代码"><a href="#三、核心代码" class="headerlink" title="三、核心代码"></a>三、核心代码</h2><h3 id="1-入口控制器-—-AuthController-java"><a href="#1-入口控制器-—-AuthController-java" class="headerlink" title="1. 入口控制器 — AuthController.java"></a>1. 入口控制器 — <code>AuthController.java</code></h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@RequestMapping(&quot;/auth&quot;)</span></span><br><span class="line"><span class="meta">@RequiredArgsConstructor</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">AuthController</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> UmsUserService userService;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@PostMapping(&quot;/login&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">Result</span>&lt;LoginVO&gt; <span class="title function_">login</span><span class="params">(<span class="meta">@Valid</span> <span class="meta">@RequestBody</span> LoginDTO dto, HttpServletRequest request)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> Result.ok(userService.login(dto, IpUtils.getClientIp(request)));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@PostMapping(&quot;/logout&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">Result</span>&lt;Void&gt; <span class="title function_">logout</span><span class="params">(HttpServletRequest request)</span> &#123;</span><br><span class="line">        userService.logout(IpUtils.getClientIp(request));</span><br><span class="line">        <span class="keyword">return</span> Result.ok();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping(&quot;/me&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">Result</span>&lt;UserInfoVO&gt; <span class="title function_">me</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> Result.ok(userService.currentUser());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-入参对象-—-LoginDTO-java"><a href="#2-入参对象-—-LoginDTO-java" class="headerlink" title="2. 入参对象 — LoginDTO.java"></a>2. 入参对象 — <code>LoginDTO.java</code></h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">LoginDTO</span> &#123;</span><br><span class="line">    <span class="meta">@NotBlank(message = &quot;用户名不能为空&quot;)</span></span><br><span class="line">    <span class="meta">@Size(min = 3, max = 20, message = &quot;用户名长度需在3~20位之间&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> String username;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@NotBlank(message = &quot;密码不能为空&quot;)</span></span><br><span class="line">    <span class="meta">@Size(min = 6, max = 20, message = &quot;密码长度需在6~20位之间&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> String password;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-登录核心逻辑-—-UmsUserServiceImpl-login"><a href="#3-登录核心逻辑-—-UmsUserServiceImpl-login" class="headerlink" title="3. 登录核心逻辑 — UmsUserServiceImpl.login()"></a>3. 登录核心逻辑 — <code>UmsUserServiceImpl.login()</code></h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">LoginVO</span> <span class="title function_">login</span><span class="params">(LoginDTO dto, String ip)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">username</span> <span class="operator">=</span> dto.getUsername();</span><br><span class="line">    <span class="type">String</span> <span class="variable">lockKey</span> <span class="operator">=</span> AuthConstants.LOGIN_FAIL_KEY_PREFIX + username;</span><br><span class="line">    <span class="comment">// 1. 检查是否已被锁定</span></span><br><span class="line">    checkLocked(lockKey);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 2. 查询用户 + BCrypt 校验密码</span></span><br><span class="line">    <span class="type">UmsUser</span> <span class="variable">user</span> <span class="operator">=</span> lambdaQuery().eq(UmsUser::getUsername, username).one();</span><br><span class="line">    <span class="keyword">if</span> (user == <span class="literal">null</span> || !BCrypt.checkpw(dto.getPassword(), user.getPassword())) &#123;</span><br><span class="line">        handleLoginFail(lockKey, <span class="literal">null</span>, username, ip, <span class="string">&quot;用户名或密码错误&quot;</span>);</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BusinessException</span>(ResultCode.LOGIN_FAIL);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 3. 校验账号状态</span></span><br><span class="line">    <span class="keyword">if</span> (user.getStatus() == <span class="literal">null</span> || user.getStatus() == <span class="number">0</span>) &#123;</span><br><span class="line">        handleLoginFail(lockKey, user.getId(), username, ip, <span class="string">&quot;账号已被禁用&quot;</span>);</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BusinessException</span>(ResultCode.ACCOUNT_DISABLED);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 4. 登录成功，清除失败计数</span></span><br><span class="line">    redisTemplate.delete(lockKey);</span><br><span class="line">    <span class="comment">// 5. Sa-Token 登录，生成 token</span></span><br><span class="line">    StpUtil.login(user.getId());</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 6. 异步记录登录日志</span></span><br><span class="line">    loginLogService.record(user.getId(), username, AuthConstants.LOG_TYPE_LOGIN,</span><br><span class="line">            ip, AuthConstants.LOG_STATUS_SUCCESS, <span class="string">&quot;登录成功&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 7. 构建返回 VO</span></span><br><span class="line">    <span class="type">LoginVO</span> <span class="variable">vo</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">LoginVO</span>();</span><br><span class="line">    vo.setToken(StpUtil.getTokenValue());</span><br><span class="line">    vo.setUserInfo(buildUserInfo(user));</span><br><span class="line">    <span class="keyword">return</span> vo;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-失败锁定机制"><a href="#4-失败锁定机制" class="headerlink" title="4. 失败锁定机制"></a>4. 失败锁定机制</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 锁定校验：失败次数 &gt;= 5 则拒绝</span></span><br><span class="line"><span class="keyword">private</span> <span class="type">void</span> <span class="title function_">checkLocked</span><span class="params">(String lockKey)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">failCount</span> <span class="operator">=</span> redisTemplate.opsForValue().get(lockKey);</span><br><span class="line">    <span class="keyword">if</span> (failCount != <span class="literal">null</span> &amp;&amp; Integer.parseInt(failCount) &gt;= AuthConstants.MAX_FAIL_COUNT) &#123;</span><br><span class="line">        <span class="type">Long</span> <span class="variable">remainSeconds</span> <span class="operator">=</span> redisTemplate.getExpire(lockKey, TimeUnit.SECONDS);</span><br><span class="line">        <span class="type">long</span> <span class="variable">remainMinutes</span> <span class="operator">=</span> remainSeconds == <span class="literal">null</span> ? <span class="number">0</span> : (remainSeconds + <span class="number">59</span>) / <span class="number">60</span>;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BusinessException</span>(ResultCode.ACCOUNT_LOCKED,</span><br><span class="line">                <span class="string">&quot;密码错误次数过多，账号已锁定，请&quot;</span> + Math.max(remainMinutes, <span class="number">1</span>) + <span class="string">&quot;分钟后再试&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 失败累计 + 首次失败设置15分钟过期窗口</span></span><br><span class="line"><span class="keyword">private</span> <span class="type">void</span> <span class="title function_">handleLoginFail</span><span class="params">(String lockKey, Long userId, String username, String ip, String message)</span> &#123;</span><br><span class="line">    <span class="type">Long</span> <span class="variable">count</span> <span class="operator">=</span> redisTemplate.opsForValue().increment(lockKey);</span><br><span class="line">    <span class="keyword">if</span> (count != <span class="literal">null</span> &amp;&amp; count == <span class="number">1L</span>) &#123;</span><br><span class="line">        redisTemplate.expire(lockKey, AuthConstants.LOCK_SECONDS, TimeUnit.SECONDS);</span><br><span class="line">    &#125;</span><br><span class="line">    loginLogService.record(userId, username, AuthConstants.LOG_TYPE_LOGIN,</span><br><span class="line">            ip, AuthConstants.LOG_STATUS_FAIL, message);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>常量定义在 <code>AuthConstants.java</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">LOGIN_FAIL_KEY_PREFIX</span> <span class="operator">=</span> <span class="string">&quot;auth:login:fail:&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">MAX_FAIL_COUNT</span> <span class="operator">=</span> <span class="number">5</span>;          <span class="comment">// 最大错误次数</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">long</span> <span class="variable">LOCK_SECONDS</span> <span class="operator">=</span> <span class="number">900L</span>;         <span class="comment">// 锁定15分钟</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="5-登出-—-logout"><a href="#5-登出-—-logout" class="headerlink" title="5. 登出 — logout()"></a>5. 登出 — <code>logout()</code></h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">void</span> <span class="title function_">logout</span><span class="params">(String ip)</span> &#123;</span><br><span class="line">    <span class="type">long</span> <span class="variable">userId</span> <span class="operator">=</span> StpUtil.getLoginIdAsLong();</span><br><span class="line">    <span class="type">UmsUser</span> <span class="variable">user</span> <span class="operator">=</span> getById(userId);</span><br><span class="line">    loginLogService.record(userId, user == <span class="literal">null</span> ? <span class="literal">null</span> : user.getUsername(),</span><br><span class="line">            AuthConstants.LOG_TYPE_LOGOUT, ip, AuthConstants.LOG_STATUS_SUCCESS, <span class="string">&quot;退出登录&quot;</span>);</span><br><span class="line">    StpUtil.logout();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-当前用户信息（含角色权限）—-currentUser-buildUserInfo"><a href="#6-当前用户信息（含角色权限）—-currentUser-buildUserInfo" class="headerlink" title="6. 当前用户信息（含角色权限）— currentUser() &#x2F; buildUserInfo()"></a>6. 当前用户信息（含角色权限）— <code>currentUser()</code> &#x2F; <code>buildUserInfo()</code></h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">UserInfoVO</span> <span class="title function_">currentUser</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">long</span> <span class="variable">userId</span> <span class="operator">=</span> StpUtil.getLoginIdAsLong();</span><br><span class="line">    <span class="type">UmsUser</span> <span class="variable">user</span> <span class="operator">=</span> getById(userId);</span><br><span class="line">    <span class="keyword">if</span> (user == <span class="literal">null</span> || user.getStatus() == <span class="literal">null</span> || user.getStatus() == <span class="number">0</span>) &#123;</span><br><span class="line">        StpUtil.logout();</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BusinessException</span>(ResultCode.ACCOUNT_DISABLED);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> buildUserInfo(user);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="type">UserInfoVO</span> <span class="title function_">buildUserInfo</span><span class="params">(UmsUser user)</span> &#123;</span><br><span class="line">    <span class="type">List</span>&lt;String&gt; <span class="variable">roles</span> <span class="operator">=</span> roleMapper.selectRoleCodesByUserId(user.getId());</span><br><span class="line">    <span class="type">List</span>&lt;String&gt; <span class="variable">permissions</span> <span class="operator">=</span> menuMapper.selectPermsByUserId(user.getId());</span><br><span class="line"></span><br><span class="line">    <span class="type">UserInfoVO</span> <span class="variable">vo</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">UserInfoVO</span>();</span><br><span class="line">    vo.setId(user.getId());</span><br><span class="line">    vo.setUsername(user.getUsername());</span><br><span class="line">    vo.setNickname(user.getNickname());</span><br><span class="line">    vo.setAvatar(user.getAvatar());</span><br><span class="line">    vo.setRoles(roles);</span><br><span class="line">    vo.setPermissions(permissions);</span><br><span class="line">    <span class="keyword">return</span> vo;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-异步登录日志-—-UmsLoginLogServiceImpl-java"><a href="#7-异步登录日志-—-UmsLoginLogServiceImpl-java" class="headerlink" title="7. 异步登录日志 — UmsLoginLogServiceImpl.java"></a>7. 异步登录日志 — <code>UmsLoginLogServiceImpl.java</code></h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Slf4j</span></span><br><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">UmsLoginLogServiceImpl</span> <span class="keyword">extends</span> <span class="title class_">ServiceImpl</span>&lt;UmsLoginLogMapper, UmsLoginLog&gt;</span><br><span class="line">        <span class="keyword">implements</span> <span class="title class_">UmsLoginLogService</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Async</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">void</span> <span class="title function_">record</span><span class="params">(Long userId, String username, Integer loginType, String ip, Integer status, String message)</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="type">UmsLoginLog</span> <span class="variable">loginLog</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">UmsLoginLog</span>();</span><br><span class="line">            loginLog.setUserId(userId);</span><br><span class="line">            loginLog.setUsername(username);</span><br><span class="line">            loginLog.setLoginType(loginType);</span><br><span class="line">            loginLog.setIp(ip);</span><br><span class="line">            loginLog.setStatus(status);</span><br><span class="line">            loginLog.setMessage(message);</span><br><span class="line">            save(loginLog);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            log.error(<span class="string">&quot;登录日志写入失败 username=&#123;&#125;&quot;</span>, username, e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>启动类需开启 <code>@EnableAsync</code>（<code>WmallApplication.java</code> 已配置）。</p>
+<hr>
+<h2 id="四、路由拦截与鉴权"><a href="#四、路由拦截与鉴权" class="headerlink" title="四、路由拦截与鉴权"></a>四、路由拦截与鉴权</h2><h3 id="1-全局登录拦截-—-SaTokenConfig-java"><a href="#1-全局登录拦截-—-SaTokenConfig-java" class="headerlink" title="1. 全局登录拦截 — SaTokenConfig.java"></a>1. 全局登录拦截 — <code>SaTokenConfig.java</code></h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SaTokenConfig</span> <span class="keyword">implements</span> <span class="title class_">WebMvcConfigurer</span> &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">void</span> <span class="title function_">addInterceptors</span><span class="params">(InterceptorRegistry registry)</span> &#123;</span><br><span class="line">        registry.addInterceptor(<span class="keyword">new</span> <span class="title class_">SaInterceptor</span>(handle -&gt; StpUtil.checkLogin()))</span><br><span class="line">                .addPathPatterns(<span class="string">&quot;/**&quot;</span>)</span><br><span class="line">                .excludePathPatterns(</span><br><span class="line">                        <span class="string">&quot;/auth/login&quot;</span>,</span><br><span class="line">                        <span class="string">&quot;/auth/register&quot;</span>,</span><br><span class="line">                        <span class="string">&quot;/actuator/**&quot;</span>,</span><br><span class="line">                        <span class="string">&quot;/error&quot;</span>,</span><br><span class="line">                        <span class="string">&quot;/favicon.ico&quot;</span></span><br><span class="line">                );</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>白名单外所有接口都需登录，<code>NotLoginException</code> 由全局异常处理转 401。</p>
+<h3 id="2-角色-权限数据源-—-StpInterfaceImpl-java"><a href="#2-角色-权限数据源-—-StpInterfaceImpl-java" class="headerlink" title="2. 角色&#x2F;权限数据源 — StpInterfaceImpl.java"></a>2. 角色&#x2F;权限数据源 — <code>StpInterfaceImpl.java</code></h3><p>当使用 <code>@SaCheckRole</code> &#x2F; <code>@SaCheckPermission</code> 注解时，Sa-Token 会回调此实现查询当前用户的角色和权限：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@RequiredArgsConstructor</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">StpInterfaceImpl</span> <span class="keyword">implements</span> <span class="title class_">StpInterface</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> UmsRoleMapper roleMapper;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> UmsMenuMapper menuMapper;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">List</span>&lt;String&gt; <span class="title function_">getPermissionList</span><span class="params">(Object loginId, String loginType)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> menuMapper.selectPermsByUserId(Long.parseLong(loginId.toString()));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">List</span>&lt;String&gt; <span class="title function_">getRoleList</span><span class="params">(Object loginId, String loginType)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> roleMapper.selectRoleCodesByUserId(Long.parseLong(loginId.toString()));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-Sa-Token-配置（application-yml）"><a href="#3-Sa-Token-配置（application-yml）" class="headerlink" title="3. Sa-Token 配置（application.yml）"></a>3. Sa-Token 配置（<code>application.yml</code>）</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">sa-token:</span></span><br><span class="line">  <span class="attr">token-name:</span> <span class="string">Authorization</span>      <span class="comment"># 请求头名称</span></span><br><span class="line">  <span class="attr">token-prefix:</span> <span class="string">Bearer</span>           <span class="comment"># token 前缀</span></span><br><span class="line">  <span class="attr">timeout:</span> <span class="number">2592000</span>               <span class="comment"># token 有效期 30 天</span></span><br><span class="line">  <span class="attr">active-timeout:</span> <span class="number">-1</span>             <span class="comment"># 不设活跃超时</span></span><br><span class="line">  <span class="attr">is-concurrent:</span> <span class="literal">true</span>            <span class="comment"># 允许同账号多端登录</span></span><br><span class="line">  <span class="attr">is-share:</span> <span class="literal">false</span>                <span class="comment"># 多端 token 不共享（每次登录生成新 token）</span></span><br><span class="line">  <span class="attr">token-style:</span> <span class="string">random-128</span>        <span class="comment"># 128位随机字符串</span></span><br><span class="line">  <span class="attr">is-log:</span> <span class="literal">false</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="五、全局异常处理-—-GlobalExceptionHandler-java"><a href="#五、全局异常处理-—-GlobalExceptionHandler-java" class="headerlink" title="五、全局异常处理 — GlobalExceptionHandler.java"></a>五、全局异常处理 — <code>GlobalExceptionHandler.java</code></h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@ExceptionHandler(NotLoginException.class)</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">Result</span>&lt;Void&gt; <span class="title function_">handleNotLogin</span><span class="params">(NotLoginException e)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> Result.fail(ResultCode.UNAUTHORIZED);   <span class="comment">// 401 未登录</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@ExceptionHandler(&#123;NotRoleException.class, NotPermissionException.class&#125;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">Result</span>&lt;Void&gt; <span class="title function_">handleNoAuth</span><span class="params">(RuntimeException e)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> Result.fail(ResultCode.FORBIDDEN);      <span class="comment">// 403 无权限</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="六、返回对象"><a href="#六、返回对象" class="headerlink" title="六、返回对象"></a>六、返回对象</h2><p><strong><code>LoginVO.java</code></strong> — 登录成功返回 token + 用户信息：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">LoginVO</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> String token;          <span class="comment">// 前端存入 Authorization: Bearer &#123;token&#125;</span></span><br><span class="line">    <span class="keyword">private</span> UserInfoVO userInfo;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong><code>UserInfoVO.java</code></strong> — 当前用户信息：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">UserInfoVO</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> Long id;</span><br><span class="line">    <span class="keyword">private</span> String username;</span><br><span class="line">    <span class="keyword">private</span> String nickname;</span><br><span class="line">    <span class="keyword">private</span> String avatar;</span><br><span class="line">    <span class="keyword">private</span> List&lt;String&gt; roles;          <span class="comment">// 角色编码列表，如 [&quot;admin&quot;,&quot;user&quot;]</span></span><br><span class="line">    <span class="keyword">private</span> List&lt;String&gt; permissions;    <span class="comment">// 权限标识列表</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="七、数据库表结构（RBAC）"><a href="#七、数据库表结构（RBAC）" class="headerlink" title="七、数据库表结构（RBAC）"></a>七、数据库表结构（RBAC）</h2><p>涉及表：<code>ums_user</code>、<code>ums_role</code>、<code>ums_user_role</code>、<code>ums_menu</code>、<code>ums_role_menu</code>、<code>ums_login_log</code></p>
+<p>角色查询 SQL（<code>UmsRoleMapper.java</code>）：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> r.role_code</span><br><span class="line"><span class="keyword">FROM</span> ums_role r</span><br><span class="line"><span class="keyword">INNER</span> <span class="keyword">JOIN</span> ums_user_role ur <span class="keyword">ON</span> ur.role_id <span class="operator">=</span> r.id</span><br><span class="line"><span class="keyword">WHERE</span> ur.user_id <span class="operator">=</span> #&#123;userId&#125; <span class="keyword">AND</span> r.status <span class="operator">=</span> <span class="number">1</span> <span class="keyword">AND</span> r.deleted <span class="operator">=</span> <span class="number">0</span></span><br></pre></td></tr></table></figure>
+
+<p>权限查询 SQL（<code>UmsMenuMapper.java</code>）：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">DISTINCT</span> m.perm_key</span><br><span class="line"><span class="keyword">FROM</span> ums_menu m</span><br><span class="line"><span class="keyword">INNER</span> <span class="keyword">JOIN</span> ums_role_menu rm <span class="keyword">ON</span> rm.menu_id <span class="operator">=</span> m.id</span><br><span class="line"><span class="keyword">INNER</span> <span class="keyword">JOIN</span> ums_user_role ur <span class="keyword">ON</span> ur.role_id <span class="operator">=</span> rm.role_id</span><br><span class="line"><span class="keyword">WHERE</span> ur.user_id <span class="operator">=</span> #&#123;userId&#125;</span><br><span class="line">  <span class="keyword">AND</span> m.status <span class="operator">=</span> <span class="number">1</span> <span class="keyword">AND</span> m.deleted <span class="operator">=</span> <span class="number">0</span></span><br><span class="line">  <span class="keyword">AND</span> m.perm_key <span class="keyword">IS</span> <span class="keyword">NOT NULL</span> <span class="keyword">AND</span> m.perm_key <span class="operator">&lt;&gt;</span> <span class="string">&#x27;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="八、登录时序总结"><a href="#八、登录时序总结" class="headerlink" title="八、登录时序总结"></a>八、登录时序总结</h2><ol>
+<li><strong>请求</strong>：<code>POST /auth/login</code>，body 为 <code>{username, password}</code></li>
+<li><strong>参数校验</strong>：<code>@Valid</code> 拦截空值&#x2F;长度，失败返回 400</li>
+<li><strong>锁定检查</strong>：Redis key <code>auth:login:fail:{username}</code> ≥ 5 则抛 <code>ACCOUNT_LOCKED</code></li>
+<li><strong>身份校验</strong>：查库 + <code>BCrypt.checkpw</code> 比对密文，失败则 <code>increment</code> 计数并异步写失败日志</li>
+<li><strong>状态校验</strong>：<code>status=0</code> 禁用账号拒绝</li>
+<li><strong>登录成功</strong>：清除 Redis 失败计数 → <code>StpUtil.login(userId)</code> 生成 token → 异步写成功日志</li>
+<li><strong>返回</strong>：<code>{ token, userInfo: { id, username, nickname, avatar, roles[], permissions[] } }</code></li>
+<li><strong>后续鉴权</strong>：请求头带 <code>Authorization: Bearer {token}</code>，<code>SaInterceptor</code> 校验登录态，<code>@SaCheckRole/@SaCheckPermission</code> 触发 <code>StpInterfaceImpl</code> 查库做权限校验</li>
+</ol>
+<p>以上就是本项目登录认证的完整流程及对应代码。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/myblog/2026/09/09/%E6%88%91%E7%9A%84%E9%89%B4%E6%9D%83%E7%99%BB%E5%BD%95%E8%AE%A4%E8%AF%81/" rel="prev" title="我的鉴权登录认证">
+                  <i class="fa fa-angle-left"></i> 我的鉴权登录认证
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/myblog/2026/09/24/wmall%E5%95%86%E5%9F%8E%E7%9A%84%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84%E5%92%8C%E8%AE%BE%E8%AE%A1/" rel="next" title="wmall商城的整体架构和设计">
+                  wmall商城的整体架构和设计 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">woshiyigedacainiao</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

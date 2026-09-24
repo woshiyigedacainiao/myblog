@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/myblog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/myblog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/myblog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/myblog/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/myblog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css" integrity="sha256-4Lad8m4ZWW1Lgb9+sMVLYEfnIh7BjV1NQMEe79Pviks=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"woshiyigedacainiao.github.io","root":"/myblog/","images":"/myblog/images","scheme":"Muse","darkmode":true,"version":"8.29.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/myblog/js/config.js" defer></script>
+
+    <meta name="description" content="核心要点：  Sa-Token 配置 (SaTokenConfig.java)：注册 SaInterceptor 拦截器，默认所有接口需要登录，白名单放行登录&#x2F;注册等接口 权限数据源 (StpInterfaceImpl.java)：实现 Sa-Token 的 StpInterface 接口，提供 getPermissionList 和 getRoleList 两个回调方法，从数据库查询用">
+<meta property="og:type" content="article">
+<meta property="og:title" content="wmall登录鉴权认证（Sa-Token + RBAC）">
+<meta property="og:url" content="https://woshiyigedacainiao.github.io/myblog/2026/09/24/wmall%E7%99%BB%E5%BD%95%E9%89%B4%E6%9D%83%E8%AE%A4%E8%AF%81%EF%BC%88Sa-Token-RBAC%EF%BC%89/index.html">
+<meta property="og:site_name" content="我的Java学习博客">
+<meta property="og:description" content="核心要点：  Sa-Token 配置 (SaTokenConfig.java)：注册 SaInterceptor 拦截器，默认所有接口需要登录，白名单放行登录&#x2F;注册等接口 权限数据源 (StpInterfaceImpl.java)：实现 Sa-Token 的 StpInterface 接口，提供 getPermissionList 和 getRoleList 两个回调方法，从数据库查询用">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-09-24T10:07:37.000Z">
+<meta property="article:modified_time" content="2026-09-24T10:08:12.175Z">
+<meta property="article:author" content="woshiyigedacainiao">
+<meta property="article:tag" content="Java,SpringBoot,MySQL,Redis">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://woshiyigedacainiao.github.io/myblog/2026/09/24/wmall%E7%99%BB%E5%BD%95%E9%89%B4%E6%9D%83%E8%AE%A4%E8%AF%81%EF%BC%88Sa-Token-RBAC%EF%BC%89/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://woshiyigedacainiao.github.io/myblog/2026/09/24/wmall%E7%99%BB%E5%BD%95%E9%89%B4%E6%9D%83%E8%AE%A4%E8%AF%81%EF%BC%88Sa-Token-RBAC%EF%BC%89/","path":"2026/09/24/wmall登录鉴权认证（Sa-Token-RBAC）/","title":"wmall登录鉴权认证（Sa-Token + RBAC）"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>wmall登录鉴权认证（Sa-Token + RBAC） | 我的Java学习博客</title>
+  
+
+
+
+
+
+
+
+
+  
+<script src="/myblog/js/utils.js" defer></script><script src="/myblog/js/motion.js" defer></script><script src="/myblog/js/sidebar.js" defer></script><script src="/myblog/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/myblog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-search popup-trigger" aria-label="搜索" role="button">
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/myblog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">我的Java学习博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-toggle" aria-label="切换导航栏" role="button">
+  </div>
+</div>
+
+
+
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#wmall-%E7%B3%BB%E7%BB%9F-Sa-Token-RBAC-%E9%89%B4%E6%9D%83%E4%BD%93%E7%B3%BB%E6%B7%B1%E5%BA%A6%E5%88%86%E6%9E%90"><span class="nav-number">1.</span> <span class="nav-text">wmall 系统 Sa-Token + RBAC 鉴权体系深度分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84%E6%A6%82%E8%A7%88"><span class="nav-number">1.1.</span> <span class="nav-text">一、整体架构概览</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81Sa-Token-%E9%85%8D%E7%BD%AE%E5%B1%82"><span class="nav-number">1.2.</span> <span class="nav-text">二、Sa-Token 配置层</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E8%B7%AF%E7%94%B1%E6%8B%A6%E6%88%AA%E5%99%A8-SaTokenConfig-java"><span class="nav-number">1.2.1.</span> <span class="nav-text">1. 路由拦截器 SaTokenConfig.java</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-application-yml-%E4%B8%AD%E7%9A%84-Sa-Token-%E5%8F%82%E6%95%B0"><span class="nav-number">1.2.2.</span> <span class="nav-text">2. application.yml 中的 Sa-Token 参数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81RBAC-%E6%9D%83%E9%99%90%E6%95%B0%E6%8D%AE%E6%BA%90%EF%BC%88%E6%A0%B8%E5%BF%83%E6%A1%A5%E6%8E%A5%EF%BC%89"><span class="nav-number">1.3.</span> <span class="nav-text">三、RBAC 权限数据源（核心桥接）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#StpInterfaceImpl-java"><span class="nav-number">1.3.1.</span> <span class="nav-text">StpInterfaceImpl.java</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E6%9D%83%E9%99%90%E7%9A%84-SQL%EF%BC%88UmsMenuMapper-java%EF%BC%89"><span class="nav-number">1.3.2.</span> <span class="nav-text">查询权限的 SQL（UmsMenuMapper.java）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E8%A7%92%E8%89%B2%E7%9A%84-SQL%EF%BC%88UmsRoleMapper-java%EF%BC%89"><span class="nav-number">1.3.3.</span> <span class="nav-text">查询角色的 SQL（UmsRoleMapper.java）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E7%99%BB%E5%BD%95-%E7%99%BB%E5%87%BA%E6%A0%B8%E5%BF%83%E9%80%BB%E8%BE%91"><span class="nav-number">1.4.</span> <span class="nav-text">四、登录&#x2F;登出核心逻辑</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#UmsUserServiceImpl-login"><span class="nav-number">1.4.1.</span> <span class="nav-text">UmsUserServiceImpl.login()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%99%BB%E5%87%BA"><span class="nav-number">1.4.2.</span> <span class="nav-text">登出</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96%E5%BD%93%E5%89%8D%E7%99%BB%E5%BD%95%E7%94%A8%E6%88%B7"><span class="nav-number">1.4.3.</span> <span class="nav-text">获取当前登录用户</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E6%B3%A8%E8%A7%A3%E9%89%B4%E6%9D%83%E7%9A%84%E4%B8%A4%E7%A7%8D%E4%BD%BF%E7%94%A8%E6%96%B9%E5%BC%8F"><span class="nav-number">1.5.</span> <span class="nav-text">五、注解鉴权的两种使用方式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E5%BC%8F%E4%B8%80%EF%BC%9A%E6%96%B9%E6%B3%95%E7%BA%A7%E6%B3%A8%E8%A7%A3%EF%BC%88%E7%BB%86%E7%B2%92%E5%BA%A6%EF%BC%89"><span class="nav-number">1.5.1.</span> <span class="nav-text">方式一：方法级注解（细粒度）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E5%BC%8F%E4%BA%8C%EF%BC%9A%E7%B1%BB%E7%BA%A7%E6%B3%A8%E8%A7%A3%EF%BC%88%E7%B2%97%E7%B2%92%E5%BA%A6%EF%BC%89"><span class="nav-number">1.5.2.</span> <span class="nav-text">方式二：类级注解（粗粒度）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AD%E3%80%81%E5%85%A8%E5%B1%80%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86"><span class="nav-number">1.6.</span> <span class="nav-text">六、全局异常处理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%83%E3%80%81RBAC-%E8%A1%A8%E7%BB%93%E6%9E%84%E8%AF%A6%E8%A7%A3"><span class="nav-number">1.7.</span> <span class="nav-text">七、RBAC 表结构详解</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-ums-user-%E7%94%A8%E6%88%B7%E8%A1%A8"><span class="nav-number">1.7.1.</span> <span class="nav-text">1. ums_user 用户表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-ums-role-%E8%A7%92%E8%89%B2%E8%A1%A8"><span class="nav-number">1.7.2.</span> <span class="nav-text">2. ums_role 角色表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-ums-menu-%E8%8F%9C%E5%8D%95-%E6%9D%83%E9%99%90%E8%A1%A8"><span class="nav-number">1.7.3.</span> <span class="nav-text">3. ums_menu 菜单&#x2F;权限表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-ums-user-role-%E7%94%A8%E6%88%B7-%E8%A7%92%E8%89%B2%E5%85%B3%E8%81%94%E8%A1%A8"><span class="nav-number">1.7.4.</span> <span class="nav-text">4. ums_user_role 用户-角色关联表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-ums-role-menu-%E8%A7%92%E8%89%B2-%E8%8F%9C%E5%8D%95%E5%85%B3%E8%81%94%E8%A1%A8"><span class="nav-number">1.7.5.</span> <span class="nav-text">5. ums_role_menu 角色-菜单关联表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-ums-login-log-%E7%99%BB%E5%BD%95%E6%97%A5%E5%BF%97%E8%A1%A8"><span class="nav-number">1.7.6.</span> <span class="nav-text">6. ums_login_log 登录日志表</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AB%E3%80%81%E5%88%9D%E5%A7%8B%E5%8C%96%E6%95%B0%E6%8D%AE%EF%BC%8802-data-sql%EF%BC%89"><span class="nav-number">1.8.</span> <span class="nav-text">八、初始化数据（02-data.sql）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B9%9D%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%99%E4%B9%88%E8%AE%BE%E8%AE%A1%EF%BC%9F"><span class="nav-number">1.9.</span> <span class="nav-text">九、为什么这么设计？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%81%E3%80%81%E5%AE%8C%E6%95%B4%E8%B0%83%E7%94%A8%E9%93%BE%E6%80%BB%E7%BB%93"><span class="nav-number">1.10.</span> <span class="nav-text">十、完整调用链总结</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">woshiyigedacainiao</p>
+  <div class="site-description" itemprop="description">Java后端学习笔记、项目踩坑总结</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/myblog/archives/">
+          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://woshiyigedacainiao.github.io/myblog/2026/09/24/wmall%E7%99%BB%E5%BD%95%E9%89%B4%E6%9D%83%E8%AE%A4%E8%AF%81%EF%BC%88Sa-Token-RBAC%EF%BC%89/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/myblog/images/avatar.gif">
+      <meta itemprop="name" content="woshiyigedacainiao">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我的Java学习博客">
+      <meta itemprop="description" content="Java后端学习笔记、项目踩坑总结">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="wmall登录鉴权认证（Sa-Token + RBAC） | 我的Java学习博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          wmall登录鉴权认证（Sa-Token + RBAC）
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-09-24 18:07:37 / 修改时间：18:08:12" itemprop="dateCreated datePublished" datetime="2026-09-24T18:07:37+08:00">2026-09-24</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>核心要点：</p>
+<ol>
+<li><strong>Sa-Token 配置</strong> (<code>SaTokenConfig.java</code>)：注册 SaInterceptor 拦截器，默认所有接口需要登录，白名单放行登录&#x2F;注册等接口</li>
+<li><strong>权限数据源</strong> (<code>StpInterfaceImpl.java</code>)：实现 Sa-Token 的 StpInterface 接口，提供 getPermissionList 和 getRoleList 两个回调方法，从数据库查询用户的权限和角色</li>
+<li><strong>登录&#x2F;登出</strong> (<code>UmsUserServiceImpl.java</code>)：使用 StpUtil.login()、StpUtil.logout()、StpUtil.getLoginIdAsLong() 等 API</li>
+<li><strong>注解鉴权</strong>：使用 @SaCheckPermission 注解对接口进行权限控制</li>
+<li><strong>异常处理</strong> (<code>GlobalExceptionHandler.java</code>)：捕获 NotLoginException、NotRoleException、NotPermissionException 并返回统一结果</li>
+<li><strong>RBAC 表结构</strong>：5张表 - ums_user、ums_role、ums_menu、ums_user_role、ums_role_menu</li>
+</ol>
+<p>让我再查看一下 AdminSeckillController 确认类级别注解的用法，以及 UserInfoVO。</p>
+<p>现在我已经收集了所有必要的信息，可以完整地分析这个系统的 Sa-Token + RBAC 实现了。让我整理一个全面的分析报告。</p>
+<p>核心组件：</p>
+<ol>
+<li><strong>SaTokenConfig.java</strong> - 路由拦截器配置</li>
+<li><strong>StpInterfaceImpl.java</strong> - 权限数据源实现</li>
+<li><strong>UmsUserServiceImpl.java</strong> - 登录&#x2F;登出&#x2F;注册业务逻辑</li>
+<li><strong>GlobalExceptionHandler.java</strong> - 异常处理</li>
+<li><strong>各 Admin Controller</strong> - 注解鉴权使用</li>
+<li><strong>5张 RBAC 表</strong> + <strong>登录日志表</strong></li>
+</ol>
+<p>让我组织一个结构清晰的分析。<br>已收集到全部核心代码，下面给出完整分析。</p>
+<hr>
+<h1 id="wmall-系统-Sa-Token-RBAC-鉴权体系深度分析"><a href="#wmall-系统-Sa-Token-RBAC-鉴权体系深度分析" class="headerlink" title="wmall 系统 Sa-Token + RBAC 鉴权体系深度分析"></a>wmall 系统 Sa-Token + RBAC 鉴权体系深度分析</h1><h2 id="一、整体架构概览"><a href="#一、整体架构概览" class="headerlink" title="一、整体架构概览"></a>一、整体架构概览</h2><p>本系统采用 <strong>Sa-Token（轻量级权限认证框架）+ 经典 RBAC（基于角色的访问控制）五表模型</strong> 的组合方案。核心设计思想是：<strong>登录态由 Sa-Token 管理，权限数据由数据库 RBAC 表提供，两者通过 <code>StpInterface</code> 接口桥接</strong>。</p>
+<p>鉴权流程如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">客户端请求</span><br><span class="line">   │</span><br><span class="line">   ▼</span><br><span class="line">SaInterceptor 路由拦截 ── 校验是否登录（StpUtil.checkLogin）</span><br><span class="line">   │ 未登录 → 抛 NotLoginException → GlobalExceptionHandler → 401</span><br><span class="line">   ▼ 已登录</span><br><span class="line">@SaCheckPermission / @SaCheckRole 注解鉴权</span><br><span class="line">   │</span><br><span class="line">   ▼ 回调 StpInterfaceImpl.getPermissionList / getRoleList</span><br><span class="line">   │        └─ 查询 ums_user → ums_user_role → ums_role → ums_role_menu → ums_menu</span><br><span class="line">   ▼ 权限不足 → 抛 NotPermissionException → 403</span><br><span class="line">   ▼ 通过</span><br><span class="line">执行业务逻辑</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="二、Sa-Token-配置层"><a href="#二、Sa-Token-配置层" class="headerlink" title="二、Sa-Token 配置层"></a>二、Sa-Token 配置层</h2><h3 id="1-路由拦截器-SaTokenConfig-java"><a href="#1-路由拦截器-SaTokenConfig-java" class="headerlink" title="1. 路由拦截器 SaTokenConfig.java"></a>1. 路由拦截器 <code>SaTokenConfig.java</code></h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SaTokenConfig</span> <span class="keyword">implements</span> <span class="title class_">WebMvcConfigurer</span> &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">void</span> <span class="title function_">addInterceptors</span><span class="params">(InterceptorRegistry registry)</span> &#123;</span><br><span class="line">        registry.addInterceptor(<span class="keyword">new</span> <span class="title class_">SaInterceptor</span>(handle -&gt; StpUtil.checkLogin()))</span><br><span class="line">                .addPathPatterns(<span class="string">&quot;/**&quot;</span>)</span><br><span class="line">                .excludePathPatterns(</span><br><span class="line">                        <span class="string">&quot;/auth/login&quot;</span>, <span class="string">&quot;/auth/register&quot;</span>,</span><br><span class="line">                        <span class="string">&quot;/actuator/**&quot;</span>, <span class="string">&quot;/error&quot;</span>, <span class="string">&quot;/favicon.ico&quot;</span></span><br><span class="line">                );</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>设计要点：</strong></p>
+<ul>
+<li>注册 <code>SaInterceptor</code>，lambda 表达式 <code>handle -&gt; StpUtil.checkLogin()</code> 表示<strong>默认所有请求必须先登录</strong>。</li>
+<li>白名单只放行登录、注册、健康检查等无需鉴权的接口。</li>
+<li>注解鉴权（<code>@SaCheckPermission</code> 等）由 <code>SaInterceptor</code> 内部自动识别并生效，无需额外配置。</li>
+</ul>
+<h3 id="2-application-yml-中的-Sa-Token-参数"><a href="#2-application-yml-中的-Sa-Token-参数" class="headerlink" title="2. application.yml 中的 Sa-Token 参数"></a>2. application.yml 中的 Sa-Token 参数</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">sa-token:</span></span><br><span class="line">  <span class="attr">token-name:</span> <span class="string">Authorization</span>        <span class="comment"># 请求头名称</span></span><br><span class="line">  <span class="attr">token-prefix:</span> <span class="string">Bearer</span>             <span class="comment"># token 前缀</span></span><br><span class="line">  <span class="attr">timeout:</span> <span class="number">2592000</span>                 <span class="comment"># token 有效期 30 天</span></span><br><span class="line">  <span class="attr">active-timeout:</span> <span class="number">-1</span>               <span class="comment"># 无活跃过期限制</span></span><br><span class="line">  <span class="attr">is-concurrent:</span> <span class="literal">true</span>              <span class="comment"># 允许同账号并发登录</span></span><br><span class="line">  <span class="attr">is-share:</span> <span class="literal">false</span>                  <span class="comment"># 不同设备不共享 token（每次登录生成新 token）</span></span><br><span class="line">  <span class="attr">token-style:</span> <span class="string">random-128</span>          <span class="comment"># token 样式：128 位随机字符串</span></span><br><span class="line">  <span class="attr">is-log:</span> <span class="literal">false</span>                    <span class="comment"># 关闭框架日志</span></span><br></pre></td></tr></table></figure>
+
+<p><code>is-share: false</code> 是关键配置——同一用户在多个浏览器登录会得到不同 token，互不影响，避免踢下线问题。</p>
+<hr>
+<h2 id="三、RBAC-权限数据源（核心桥接）"><a href="#三、RBAC-权限数据源（核心桥接）" class="headerlink" title="三、RBAC 权限数据源（核心桥接）"></a>三、RBAC 权限数据源（核心桥接）</h2><h3 id="StpInterfaceImpl-java"><a href="#StpInterfaceImpl-java" class="headerlink" title="StpInterfaceImpl.java"></a><code>StpInterfaceImpl.java</code></h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@RequiredArgsConstructor</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">StpInterfaceImpl</span> <span class="keyword">implements</span> <span class="title class_">StpInterface</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> UmsRoleMapper roleMapper;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> UmsMenuMapper menuMapper;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">List</span>&lt;String&gt; <span class="title function_">getPermissionList</span><span class="params">(Object loginId, String loginType)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> menuMapper.selectPermsByUserId(Long.parseLong(loginId.toString()));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">List</span>&lt;String&gt; <span class="title function_">getRoleList</span><span class="params">(Object loginId, String loginType)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> roleMapper.selectRoleCodesByUserId(Long.parseLong(loginId.toString()));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>这是 Sa-Token 与 RBAC 表的唯一桥梁。</strong> Sa-Token 在执行 <code>@SaCheckPermission(&quot;user:list&quot;)</code> 时，会自动回调这两个方法获取当前用户的权限&#x2F;角色列表，然后进行比对。</p>
+<h3 id="查询权限的-SQL（UmsMenuMapper-java）"><a href="#查询权限的-SQL（UmsMenuMapper-java）" class="headerlink" title="查询权限的 SQL（UmsMenuMapper.java）"></a>查询权限的 SQL（<code>UmsMenuMapper.java</code>）</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">DISTINCT</span> m.perm_key</span><br><span class="line"><span class="keyword">FROM</span> ums_menu m</span><br><span class="line"><span class="keyword">INNER</span> <span class="keyword">JOIN</span> ums_role_menu rm <span class="keyword">ON</span> rm.menu_id <span class="operator">=</span> m.id</span><br><span class="line"><span class="keyword">INNER</span> <span class="keyword">JOIN</span> ums_user_role ur <span class="keyword">ON</span> ur.role_id <span class="operator">=</span> rm.role_id</span><br><span class="line"><span class="keyword">WHERE</span> ur.user_id <span class="operator">=</span> #&#123;userId&#125;</span><br><span class="line">  <span class="keyword">AND</span> m.status <span class="operator">=</span> <span class="number">1</span> <span class="keyword">AND</span> m.deleted <span class="operator">=</span> <span class="number">0</span></span><br><span class="line">  <span class="keyword">AND</span> m.perm_key <span class="keyword">IS</span> <span class="keyword">NOT NULL</span> <span class="keyword">AND</span> m.perm_key <span class="operator">&lt;&gt;</span> <span class="string">&#x27;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>关联路径：<strong>用户 → 用户角色表 → 角色菜单表 → 菜单权限表</strong>，取出去重后的 <code>perm_key</code> 列表。</p>
+<h3 id="查询角色的-SQL（UmsRoleMapper-java）"><a href="#查询角色的-SQL（UmsRoleMapper-java）" class="headerlink" title="查询角色的 SQL（UmsRoleMapper.java）"></a>查询角色的 SQL（<code>UmsRoleMapper.java</code>）</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> r.role_code</span><br><span class="line"><span class="keyword">FROM</span> ums_role r</span><br><span class="line"><span class="keyword">INNER</span> <span class="keyword">JOIN</span> ums_user_role ur <span class="keyword">ON</span> ur.role_id <span class="operator">=</span> r.id</span><br><span class="line"><span class="keyword">WHERE</span> ur.user_id <span class="operator">=</span> #&#123;userId&#125; <span class="keyword">AND</span> r.status <span class="operator">=</span> <span class="number">1</span> <span class="keyword">AND</span> r.deleted <span class="operator">=</span> <span class="number">0</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="四、登录-登出核心逻辑"><a href="#四、登录-登出核心逻辑" class="headerlink" title="四、登录&#x2F;登出核心逻辑"></a>四、登录&#x2F;登出核心逻辑</h2><h3 id="UmsUserServiceImpl-login"><a href="#UmsUserServiceImpl-login" class="headerlink" title="UmsUserServiceImpl.login()"></a><code>UmsUserServiceImpl.login()</code></h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">LoginVO</span> <span class="title function_">login</span><span class="params">(LoginDTO dto, String ip)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">username</span> <span class="operator">=</span> dto.getUsername();</span><br><span class="line">    <span class="type">String</span> <span class="variable">lockKey</span> <span class="operator">=</span> AuthConstants.LOGIN_FAIL_KEY_PREFIX + username;</span><br><span class="line">    checkLocked(lockKey);  <span class="comment">// ① 检查账号是否被锁定</span></span><br><span class="line"></span><br><span class="line">    <span class="type">UmsUser</span> <span class="variable">user</span> <span class="operator">=</span> lambdaQuery().eq(UmsUser::getUsername, username).one();</span><br><span class="line">    <span class="keyword">if</span> (user == <span class="literal">null</span> || !BCrypt.checkpw(dto.getPassword(), user.getPassword())) &#123;</span><br><span class="line">        handleLoginFail(lockKey, <span class="literal">null</span>, username, ip, <span class="string">&quot;用户名或密码错误&quot;</span>);</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BusinessException</span>(ResultCode.LOGIN_FAIL);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (user.getStatus() == <span class="literal">null</span> || user.getStatus() == <span class="number">0</span>) &#123;</span><br><span class="line">        handleLoginFail(lockKey, user.getId(), username, ip, <span class="string">&quot;账号已被禁用&quot;</span>);</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BusinessException</span>(ResultCode.ACCOUNT_DISABLED);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    redisTemplate.delete(lockKey);       <span class="comment">// ② 登录成功，清除失败计数</span></span><br><span class="line">    StpUtil.login(user.getId());         <span class="comment">// ③ Sa-Token 登录，生成 token</span></span><br><span class="line"></span><br><span class="line">    loginLogService.record(...);         <span class="comment">// ④ 记录登录日志</span></span><br><span class="line"></span><br><span class="line">    <span class="type">LoginVO</span> <span class="variable">vo</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">LoginVO</span>();</span><br><span class="line">    vo.setToken(StpUtil.getTokenValue());<span class="comment">// ⑤ 获取生成的 token 返回给前端</span></span><br><span class="line">    vo.setUserInfo(buildUserInfo(user));</span><br><span class="line">    <span class="keyword">return</span> vo;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键设计：</strong></p>
+<ul>
+<li><code>StpUtil.login(user.getId())</code>：将用户 ID 作为 loginId 写入 Sa-Token 会话，框架自动生成随机 token 并存入 Redis。</li>
+<li><code>StpUtil.getTokenValue()</code>：获取当前 token 字符串返回给前端，前端后续请求携带 <code>Authorization: Bearer xxx</code>。</li>
+<li>密码使用 <strong>BCrypt</strong> 哈希存储（<code>BCrypt.hashpw</code> &#x2F; <code>BCrypt.checkpw</code>），自带盐值，防彩虹表。</li>
+<li><strong>登录失败锁定</strong>：连续 5 次密码错误，Redis key <code>auth:login:fail:{username}</code> 锁定 15 分钟（<code>AuthConstants.LOCK_SECONDS = 900</code>），防暴力破解。</li>
+</ul>
+<h3 id="登出"><a href="#登出" class="headerlink" title="登出"></a>登出</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">StpUtil.logout();  <span class="comment">// 清除当前 token 的会话</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="获取当前登录用户"><a href="#获取当前登录用户" class="headerlink" title="获取当前登录用户"></a>获取当前登录用户</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">long</span> <span class="variable">userId</span> <span class="operator">=</span> StpUtil.getLoginIdAsLong();  <span class="comment">// 在业务 Controller 中随处可用</span></span><br></pre></td></tr></table></figure>
+
+<p><code>OrderController</code>、<code>SeckillController</code>、<code>NoticeController</code> 中大量使用此方法获取当前操作人。</p>
+<hr>
+<h2 id="五、注解鉴权的两种使用方式"><a href="#五、注解鉴权的两种使用方式" class="headerlink" title="五、注解鉴权的两种使用方式"></a>五、注解鉴权的两种使用方式</h2><h3 id="方式一：方法级注解（细粒度）"><a href="#方式一：方法级注解（细粒度）" class="headerlink" title="方式一：方法级注解（细粒度）"></a>方式一：方法级注解（细粒度）</h3><p>以 <code>AdminOrderController.java</code> 为例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SaCheckPermission(&quot;order:manage&quot;)</span>   <span class="comment">// 订单后台管理权限</span></span><br><span class="line"><span class="meta">@GetMapping(&quot;/page&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">Result</span>&lt;IPage&lt;OrderVO&gt;&gt; <span class="title function_">page</span><span class="params">(...)</span> &#123; ... &#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@SaCheckPermission(&quot;order:ship&quot;)</span>     <span class="comment">// 发货权限</span></span><br><span class="line"><span class="meta">@PutMapping(&quot;/&#123;orderNo&#125;/ship&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">Result</span>&lt;Void&gt; <span class="title function_">ship</span><span class="params">(<span class="meta">@PathVariable</span> String orderNo)</span> &#123; ... &#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@SaCheckPermission(&quot;order:refund&quot;)</span>   <span class="comment">// 退款审核权限</span></span><br><span class="line"><span class="meta">@PutMapping(&quot;/&#123;orderNo&#125;/refund/approve&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">Result</span>&lt;Void&gt; <span class="title function_">approveRefund</span><span class="params">(<span class="meta">@PathVariable</span> String orderNo)</span> &#123; ... &#125;</span><br></pre></td></tr></table></figure>
+
+<p>同一个 Controller 的不同接口需要不同权限，用方法级注解精准控制。</p>
+<h3 id="方式二：类级注解（粗粒度）"><a href="#方式二：类级注解（粗粒度）" class="headerlink" title="方式二：类级注解（粗粒度）"></a>方式二：类级注解（粗粒度）</h3><p>以 <code>AdminSeckillController.java</code> 为例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@RequestMapping(&quot;/admin/seckill&quot;)</span></span><br><span class="line"><span class="meta">@SaCheckPermission(&quot;seckill:manage&quot;)</span>   <span class="comment">// 整个类的所有接口都需要此权限</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">AdminSeckillController</span> &#123;</span><br><span class="line">    <span class="meta">@PostMapping(&quot;/create&quot;)</span>  <span class="keyword">public</span> Result&lt;...&gt; create(...) &#123; ... &#125;</span><br><span class="line">    <span class="meta">@PutMapping(&quot;/update&quot;)</span>   <span class="keyword">public</span> <span class="type">Result</span>&lt;Void&gt; <span class="title function_">update</span><span class="params">(...)</span> &#123; ... &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>秒杀管理所有操作统一要求 <code>seckill:manage</code> 权限，类级注解更简洁。</p>
+<hr>
+<h2 id="六、全局异常处理"><a href="#六、全局异常处理" class="headerlink" title="六、全局异常处理"></a>六、全局异常处理</h2><p><code>GlobalExceptionHandler.java</code> 中专门处理 Sa-Token 抛出的异常：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@ExceptionHandler(NotLoginException.class)</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">Result</span>&lt;Void&gt; <span class="title function_">handleNotLogin</span><span class="params">(NotLoginException e)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> Result.fail(ResultCode.UNAUTHORIZED);  <span class="comment">// 401 未登录</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@ExceptionHandler(&#123;NotRoleException.class, NotPermissionException.class&#125;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">Result</span>&lt;Void&gt; <span class="title function_">handleNoAuth</span><span class="params">(RuntimeException e)</span> &#123;</span><br><span class="line">    log.warn(<span class="string">&quot;权限不足：&#123;&#125;&quot;</span>, e.getMessage());</span><br><span class="line">    <span class="keyword">return</span> Result.fail(ResultCode.FORBIDDEN);     <span class="comment">// 403 权限不足</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Sa-Token 校验失败时抛异常，由全局处理器统一转为前端友好的错误码。</p>
+<hr>
+<h2 id="七、RBAC-表结构详解"><a href="#七、RBAC-表结构详解" class="headerlink" title="七、RBAC 表结构详解"></a>七、RBAC 表结构详解</h2><p>共 6 张表（5 张 RBAC 核心表 + 1 张登录日志表）：</p>
+<h3 id="1-ums-user-用户表"><a href="#1-ums-user-用户表" class="headerlink" title="1. ums_user 用户表"></a>1. <code>ums_user</code> 用户表</h3><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>id</td>
+<td>BIGINT PK</td>
+<td>主键</td>
+</tr>
+<tr>
+<td>username</td>
+<td>VARCHAR(50) UK</td>
+<td>登录用户名，唯一</td>
+</tr>
+<tr>
+<td>password</td>
+<td>VARCHAR(100)</td>
+<td>BCrypt 密文</td>
+</tr>
+<tr>
+<td>nickname</td>
+<td>VARCHAR(50)</td>
+<td>昵称</td>
+</tr>
+<tr>
+<td>phone</td>
+<td>VARCHAR(20)</td>
+<td>手机号（预留）</td>
+</tr>
+<tr>
+<td>avatar</td>
+<td>VARCHAR(255)</td>
+<td>头像地址</td>
+</tr>
+<tr>
+<td>status</td>
+<td>TINYINT</td>
+<td>1 正常 &#x2F; 0 禁用</td>
+</tr>
+<tr>
+<td>balance</td>
+<td>DECIMAL</td>
+<td>账户余额（余额支付用）</td>
+</tr>
+<tr>
+<td>deleted</td>
+<td>TINYINT</td>
+<td>逻辑删除</td>
+</tr>
+</tbody></table>
+<h3 id="2-ums-role-角色表"><a href="#2-ums-role-角色表" class="headerlink" title="2. ums_role 角色表"></a>2. <code>ums_role</code> 角色表</h3><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>id</td>
+<td>BIGINT PK</td>
+<td>主键</td>
+</tr>
+<tr>
+<td>role_code</td>
+<td>VARCHAR(50) UK</td>
+<td>角色编码（admin&#x2F;user），Sa-Token 鉴权用</td>
+</tr>
+<tr>
+<td>role_name</td>
+<td>VARCHAR(50)</td>
+<td>角色名称（展示用）</td>
+</tr>
+<tr>
+<td>status</td>
+<td>TINYINT</td>
+<td>1 正常 &#x2F; 0 停用</td>
+</tr>
+</tbody></table>
+<h3 id="3-ums-menu-菜单-权限表"><a href="#3-ums-menu-菜单-权限表" class="headerlink" title="3. ums_menu 菜单&#x2F;权限表"></a>3. <code>ums_menu</code> 菜单&#x2F;权限表</h3><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>id</td>
+<td>BIGINT PK</td>
+<td>主键</td>
+</tr>
+<tr>
+<td>parent_id</td>
+<td>BIGINT</td>
+<td>父级 ID，0 为根</td>
+</tr>
+<tr>
+<td>menu_name</td>
+<td>VARCHAR(50)</td>
+<td>菜单&#x2F;权限名称</td>
+</tr>
+<tr>
+<td>menu_type</td>
+<td>TINYINT</td>
+<td>1 目录 &#x2F; 2 菜单 &#x2F; 3 按钮权限</td>
+</tr>
+<tr>
+<td><strong>perm_key</strong></td>
+<td>VARCHAR(100)</td>
+<td><strong>权限标识（如 user:list），Sa-Token 鉴权核心字段</strong></td>
+</tr>
+<tr>
+<td>path</td>
+<td>VARCHAR(200)</td>
+<td>前端路由</td>
+</tr>
+<tr>
+<td>sort</td>
+<td>INT</td>
+<td>排序</td>
+</tr>
+<tr>
+<td>status</td>
+<td>TINYINT</td>
+<td>1 正常 &#x2F; 0 停用</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><code>menu_type=3</code> 且 <code>perm_key</code> 非空的记录才是真正参与后端鉴权的”按钮权限”；目录和菜单主要用于前端菜单树渲染。</p>
+</blockquote>
+<h3 id="4-ums-user-role-用户-角色关联表"><a href="#4-ums-user-role-用户-角色关联表" class="headerlink" title="4. ums_user_role 用户-角色关联表"></a>4. <code>ums_user_role</code> 用户-角色关联表</h3><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>user_id</td>
+<td>BIGINT</td>
+<td>用户 ID</td>
+</tr>
+<tr>
+<td>role_id</td>
+<td>BIGINT</td>
+<td>角色 ID</td>
+</tr>
+</tbody></table>
+<p>联合主键 <code>(user_id, role_id)</code>，支持一个用户拥有多个角色。</p>
+<h3 id="5-ums-role-menu-角色-菜单关联表"><a href="#5-ums-role-menu-角色-菜单关联表" class="headerlink" title="5. ums_role_menu 角色-菜单关联表"></a>5. <code>ums_role_menu</code> 角色-菜单关联表</h3><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>role_id</td>
+<td>BIGINT</td>
+<td>角色 ID</td>
+</tr>
+<tr>
+<td>menu_id</td>
+<td>BIGINT</td>
+<td>菜单&#x2F;权限 ID</td>
+</tr>
+</tbody></table>
+<p>联合主键 <code>(role_id, menu_id)</code>，支持一个角色拥有多个权限。</p>
+<h3 id="6-ums-login-log-登录日志表"><a href="#6-ums-login-log-登录日志表" class="headerlink" title="6. ums_login_log 登录日志表"></a>6. <code>ums_login_log</code> 登录日志表</h3><p>记录登录&#x2F;登出行为，包含用户 ID、用户名、IP、成功&#x2F;失败状态、说明信息，用于安全审计。</p>
+<hr>
+<h2 id="八、初始化数据（02-data-sql）"><a href="#八、初始化数据（02-data-sql）" class="headerlink" title="八、初始化数据（02-data.sql）"></a>八、初始化数据（<code>02-data.sql</code>）</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 角色</span></span><br><span class="line"><span class="keyword">INSERT INTO</span> ums_role <span class="keyword">VALUES</span> (<span class="number">1</span>, <span class="string">&#x27;admin&#x27;</span>, <span class="string">&#x27;管理员&#x27;</span>, <span class="number">1</span>), (<span class="number">2</span>, <span class="string">&#x27;user&#x27;</span>, <span class="string">&#x27;普通用户&#x27;</span>, <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 权限标识</span></span><br><span class="line"><span class="comment">-- user:list, user:add, product:category, product:spu, product:onoff,</span></span><br><span class="line"><span class="comment">-- stock:sync, stock:operate, order:manage, order:ship, order:refund, seckill:manage</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 管理员(role_id=1) 拥有全部 13 个权限</span></span><br><span class="line"><span class="comment">-- 普通用户(role_id=2) 无任何后台权限</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 初始账号：admin/admin123（管理员），user/user123（普通用户）</span></span><br></pre></td></tr></table></figure>
+
+<p>注册新用户时自动赋予 <code>user</code> 角色：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">UmsRole</span> <span class="variable">userRole</span> <span class="operator">=</span> roleMapper.selectOne(... eq(UmsRole::getRoleCode, AuthConstants.ROLE_USER) ...);</span><br><span class="line"><span class="type">UmsUserRole</span> <span class="variable">userRoleRef</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">UmsUserRole</span>();</span><br><span class="line">userRoleRef.setUserId(user.getId());</span><br><span class="line">userRoleRef.setRoleId(userRole.getId());</span><br><span class="line">userRoleMapper.insert(userRoleRef);</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="九、为什么这么设计？"><a href="#九、为什么这么设计？" class="headerlink" title="九、为什么这么设计？"></a>九、为什么这么设计？</h2><table>
+<thead>
+<tr>
+<th>设计决策</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Sa-Token 而非 Spring Security</strong></td>
+<td>Sa-Token 上手简单、API 直观（<code>StpUtil.login()</code>），无需复杂配置，适合中小型电商项目快速交付</td>
+</tr>
+<tr>
+<td><strong>StpInterface 桥接而非自定义拦截器</strong></td>
+<td>Sa-Token 原生支持 <code>StpInterface</code> 扩展，只需实现两个方法即可对接任意数据源，框架自动处理注解鉴权，减少样板代码</td>
+</tr>
+<tr>
+<td><strong>权限存数据库而非写死</strong></td>
+<td>权限可动态配置，管理员通过后台即可调整角色-菜单关系，无需改代码重启</td>
+</tr>
+<tr>
+<td><strong><code>perm_key</code> 字符串标识而非数字 ID</strong></td>
+<td>可读性强，<code>@SaCheckPermission(&quot;order:ship&quot;)</code> 一目了然，便于前后端约定</td>
+</tr>
+<tr>
+<td><strong><code>is-share: false</code></strong></td>
+<td>多端登录互不踢下线，用户体验好</td>
+</tr>
+<tr>
+<td><strong>Redis 登录失败计数</strong></td>
+<td>无状态、可跨实例共享，防暴力破解不依赖本地内存</td>
+</tr>
+<tr>
+<td><strong>BCrypt 密码</strong></td>
+<td>自带盐值、慢哈希，抗彩虹表和暴力破解</td>
+</tr>
+<tr>
+<td><strong>逻辑删除 + status 双字段</strong></td>
+<td><code>deleted</code> 防误删可恢复，<code>status</code> 用于临时禁用账号</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="十、完整调用链总结"><a href="#十、完整调用链总结" class="headerlink" title="十、完整调用链总结"></a>十、完整调用链总结</h2><ol>
+<li>用户登录 → <code>AuthController.login()</code> → <code>UmsUserServiceImpl.login()</code> → <code>StpUtil.login(userId)</code> → Sa-Token 在 Redis 存 <code>token → userId</code> 映射 → 返回 token</li>
+<li>前端请求携带 <code>Authorization: Bearer {token}</code> → <code>SaInterceptor</code> 解析 token → <code>StpUtil.checkLogin()</code> 校验登录态</li>
+<li>接口上的 <code>@SaCheckPermission(&quot;xxx&quot;)</code> 触发 → Sa-Token 回调 <code>StpInterfaceImpl.getPermissionList(loginId)</code> → 执行 SQL 查 <code>ums_menu.perm_key</code> → 比对权限</li>
+<li>通过则执行业务，不通过抛 <code>NotPermissionException</code> → <code>GlobalExceptionHandler</code> 返回 403</li>
+</ol>
+<p>这套方案实现了**登录认证、权限授权、异常处理、安全加固（锁定&#x2F;BCrypt&#x2F;日志）**的完整闭环，代码简洁且生产可用。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/myblog/2026/09/24/wmall%E5%95%86%E5%9F%8E%E7%9A%84%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84%E5%92%8C%E8%AE%BE%E8%AE%A1/" rel="prev" title="wmall商城的整体架构和设计">
+                  <i class="fa fa-angle-left"></i> wmall商城的整体架构和设计
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/myblog/2026/09/24/wmall%E7%A7%92%E6%9D%80%E6%B5%81%E7%A8%8B%E8%AF%A6%E8%A7%A3/" rel="next" title="wmall秒杀流程详解">
+                  wmall秒杀流程详解 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">woshiyigedacainiao</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
